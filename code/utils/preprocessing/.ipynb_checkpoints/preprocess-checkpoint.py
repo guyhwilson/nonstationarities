@@ -4,6 +4,7 @@ import numpy as np
 from scipy.io import loadmat
 import os
 import h5py
+from copy import deepcopy
 
 dtypes = {}
 
@@ -197,25 +198,64 @@ class DataStruct(object):
     Generates a simplified R struct from cursor data.
     """
     def __init__(self, file):
-        dat = loadmat(file)['dataset'][0][0]
+        dat                = loadmat(file)['dataset'][0][0]
+        self.blockList            = dat[0]    # contains block labels 
+        self.gameName             = dat[18]   # of same length as blocklist: contains string label of task for each block
+        self.TX_continuous        = dat[12]
+        self.cursorPos_continuous = dat[6]
+        self.targetPos_continuous = dat[7]
+        self.onTarget             = dat[8]
+        self.TX_thresh            = dat[13]
+        self.trialEpochs          = dat[15] - 1
+        self.sysClock             = dat[4]
+        self.nspClocks            = dat[5]
+        self.decVel               = dat[10]
+        self.decClick             = dat[11]
+        self.n_trials             = self.trialEpochs.shape[0]
+        self.n_channels           = self.TX_continuous.shape[1]  
+
+
+    
+        TX         = list()
+        blockNums  = list()
+        trialType  = list()
+        isSuccessful = list()
         
-        self.blockList  = dat[0]
-        self.targetSize = dat[1]
-        self.cursorSize = dat[2]
-        self.blockNums = dat[3]
-        self.sysClock  = dat[4]
-        self.nspClocks = dat[5]
-        self.cursorPos = dat[6]
-        self.targetPos = dat[7]
-        self.onTarget  = dat[8]
-        self.decVel    = dat[10]
-        self.decClick  = dat[11]
-        self.TX        = dat[12]
-        self.TX_thresh         = dat[13]
-        self.trialEpochs       = dat[15]
-        self.intertrialPeriods = dat[17]
-        self.isSuccessful      = dat[18]
+        targetSize, cursorSize = list(), list()
+        cursorPos, targetPos   = list(), list()
         
+        for i in range(self.n_trials):
+          start, stop = self.trialEpochs[i, :]
+          
+          targetSize.append(dat[1][start][0])
+          cursorSize.append(dat[2][start][0])
+          blockNums.append(dat[3][start][0])
+          
+          trialType.append(self.gameName[np.where(self.blockList == blockNums[-1])[1]][0][0][0])
+          isSuccessful.append(dat[19][0])
+          
+          TX.append(deepcopy(self.TX_continuous[start:stop, :]))
+          cursorPos.append(deepcopy(self.cursorPos_continuous[start:stop, :]))
+          targetPos.append(deepcopy(self.targetPos_continuous[start:stop, :]))
+        
+        self.TX           = TX
+        self.targetSize   = np.asarray(targetSize)
+        self.cursorSize   = np.asarray(cursorSize)
+        self.targetPos    = targetPos
+        self.cursorPos    = cursorPos
+        self.blockNums    = np.asarray(blockNums)
+        self.IsSuccessful = np.asarray(isSuccessful)
+        self.trialType    = np.asarray(trialType)
+        #-----------
+        
+        #self.targetSize = dat[1]
+        #self.cursorSize = dat[2]
+        #self.blockNums = dat[3]
+    
+        
+       # self.isSuccessful      = dat[19]
+        
+
         
         
         
