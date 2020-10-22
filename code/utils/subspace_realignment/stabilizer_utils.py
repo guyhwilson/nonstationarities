@@ -4,6 +4,25 @@ from sklearn.decomposition import FactorAnalysis, PCA
 
 
 
+def get_FA_ExplainedVariance(fa):
+  '''
+  Calculate explained variance ratios for each component in a FactorAnalysis model and 
+  store in a explained_variance_ratio_ field (like sklearn). Inputs are:
+  
+    fa (FactorAnalysis) - trained FA model from sklearn library
+  '''
+  n_components = fa.components_.shape[0]
+  m            = fa.components_**2
+  n            = fa.noise_variance_
+  m1           = np.sum(m, axis = 1)
+  frac_var     = np.asarray([m1[i]/(np.sum(m1)+np.sum(n)) for i in range(n_components)])
+
+  fa.explained_variance_ratio_ = frac_var
+  return fa
+
+
+
+
 
 def get_ConditionAveraged(data, conditions):
   '''
