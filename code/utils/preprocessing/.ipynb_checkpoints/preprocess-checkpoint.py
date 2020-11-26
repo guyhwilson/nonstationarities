@@ -6,6 +6,8 @@ import os
 from copy import deepcopy
 from datetime import date
 
+
+
 def daysBetween(date_a, date_b):
     '''Number of days between two sessions. Input format is:
     
@@ -18,18 +20,7 @@ def daysBetween(date_a, date_b):
     return np.abs(days) 
 
 
-def string(seq):
-    """Convert a sequence of integers into a single string.
-    """
-    #print(seq)
-    #print(seq.shape)
-    if seq.shape[1] < 2:
-        return ''.join([chr(a) for a in seq])
-    else:
-        return
-
-            
-            
+   
             
 class DataStruct(object):
     """
@@ -39,14 +30,15 @@ class DataStruct(object):
         dat                = loadmat(file)['dataset'][0][0]
         self.date          = file.split('t5.')[1].split('.mat')[0]
         
-        self.blockList            = dat[0]    # contains block labels 
+        self.blockList            = dat[0][0]    # contains block labels 
         self.gameName             = dat[18]   # of same length as blocklist: contains string label of task for each block
         self.TX_continuous        = dat[12]
         self.cursorPos_continuous = dat[6]
         self.targetPos_continuous = dat[7]
         self.onTarget             = dat[8]
         self.TX_thresh            = dat[13]
-        self.trialEpochs          = dat[15] - 1
+        self.trialEpochs          = dat[15] - 1  # account for MATLAB's 1-indexing
+        self.trialEpochs[:, 1]   += 1            # account for MATLAB's inclusive indexing 
         self.sysClock             = dat[4]
         self.nspClocks            = dat[5]
         self.decVel               = dat[10]
@@ -68,8 +60,8 @@ class DataStruct(object):
           targetSize.append(dat[1][start][0])
           cursorSize.append(dat[2][start][0])
           blockNums.append(dat[3][start][0])
-          
-          trialType.append(self.gameName[np.where(self.blockList == blockNums[-1])[1]][0][0][0])
+
+          trialType.append(self.gameName[np.where(self.blockList == blockNums[-1])[0]][0][0][0])
           isSuccessful.append(dat[19][0])
           
           TX.append(deepcopy(self.TX_continuous[start:stop, :]))

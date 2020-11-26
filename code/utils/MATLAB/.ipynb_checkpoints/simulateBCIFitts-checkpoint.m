@@ -132,8 +132,8 @@ function [posTraj, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStar
         posErr      = currTarg - xK(1:2);
         targDist    = sqrt(sum(posErr.^2));
         distWeight  = interp1([0; fTarg(:,1); 100], [fTarg(1,2); fTarg(:,2); fTarg(end,2)], targDist);   % we're ignoring the velocity dampening term
-        %currControl =  (posErr/targDist);
-        currControl = distWeight * (posErr/targDist);
+        currControl =  (posErr/targDist);
+        %currControl = distWeight * (posErr/targDist);
 
         
         %simulate neural activity tuned to this control vector
