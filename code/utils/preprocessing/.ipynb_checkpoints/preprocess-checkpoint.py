@@ -21,7 +21,6 @@ def daysBetween(date_a, date_b):
 
 
    
-            
 class DataStruct(object):
 	"""
 	Generates a simplified R struct from cursor data.
@@ -78,12 +77,20 @@ class DataStruct(object):
 		self.trialType    = np.asarray(trialType)
 
       
+		self.screenNormalized = False
 
-def normalizeTaskScreens(struct):
-	'''Realign screen positioning across different tasks into a common reference frame by centering all
-	   screens at (0, 0). Inputs are:
-	
-		struct (DataStruct) - session data to use 
-	'''
-	return
-	#for task in struct.
+	def alignTaskScreens(self):
+		'''Realign screen positioning across different tasks into a common reference frame by centering all
+		   screens at (0, 0). Inputs are:
+
+			struct (DataStruct) - session data to use 
+		'''
+		
+		if not self.screenNormalized:
+			screen_realignments = np.load('misc_data/screen_realignments.npy', allow_pickle = True).item()
+			
+			for i, task in enumerate(self.trialType):
+				self.cursorPos[i] -= screen_realignments[task]
+				self.targetPos[i] -= screen_realignments[task]
+		else:
+			print('Screens already aligned across tasks. Skipping.')
