@@ -67,93 +67,92 @@ def fit_ConditionAveragedModel(model_type, model_params, datas, conditions):
 
 
 def fit_TrialConcatenatedModel(model_type, model_params, data, sigma = None):
-  '''
-  Fit PCA or Factor Analysis model using condition-averaged and concatenated 
-  data. Inputs are:
-  
-    model_type (str)      - either 'PCA' or 'FactorAnalysis'
-    model_params (dict)   - dictionary of model parameters to pass
-    data (list)           - entries are channels x time arrays  
-  '''
-  
-  assert model_type in ['PCA','FactorAnalysis'], "Model type not recognized."
-  
-  # prepare trial-concatenated data:
-  if sigma is not None:
-    data = [gaussian_filter1d(trldat, sigma, axis = 0) for trldat in data]
-    
-  input_data = np.vstack(data)
-  
-  # generate model:
-  model = eval(model_type)(**model_params)
-  model.fit(input_data)
-  
-  return model, model.score(input_data)
-  
+	'''
+	Fit PCA or Factor Analysis model using condition-averaged and concatenated 
+	data. Inputs are:
+
+	model_type (str)      - either 'PCA' or 'FactorAnalysis'
+	model_params (dict)   - dictionary of model parameters to pass
+	data (list)           - entries are channels x time arrays  
+	'''
+	assert model_type in ['PCA','FactorAnalysis'], "Model type not recognized."
+
+	# prepare trial-concatenated data:
+	if sigma is not None:
+		data = [gaussian_filter1d(trldat, sigma, axis = 0) for trldat in data]
+		
+	input_data = np.vstack(data)
+
+	# generate model:
+	model = eval(model_type)(**model_params)
+	model.fit(input_data)
+
+	return model, model.score(input_data)
+
   
 
 def latentSweep(model_type, data, sweep_dims, sigma = None, model_params = dict()):
-  '''
-  Do a hyperparameter sweep to identify best latent dimensionality, based 
-  upon performance on holdout data. Inputs are:
-  
-    model_type (str)          - can be 'FactorAnalysis' or 'PCA'
-    datas (list)              - entries are channels x time arrays 
-    sweep_dims (list of ints) - dimensionalities to test
-    sigma (float)             - SD of gaussian kernel for data smoothing; default no smoothing
-    model_params (dictionary) - shared parameters for all models generated in sweep
-    
-  Returns:
-      
-    sweep_results (np array)  - list containing with entries containing scores for each 
-                                value in sweep_dims
-  
-  TODO:
-    random_state (int)        - if provided, sets the random state for reproducibility or paired comparisons
-    fit PCA using max(sweep_dims) then just subselect eigenvector #s according to sweep_dims
-  '''
-  
-  sweep_len                     = len(sweep_dims)
-  sweep_results                 = np.zeros((sweep_len,)) 
-  models                        = list()
-  
-  for i, state_dim in enumerate(sweep_dims):
-    model_params['n_components'] = state_dim
+	'''
+	Do a hyperparameter sweep to identify best latent dimensionality, based 
+	upon performance on holdout data. Inputs are:
 
-    model, score     = fit_TrialConcatenatedModel(model_type, model_params, data, sigma = sigma)
-    sweep_results[i] = score
-    models.append(model)
-   
-  return sweep_results, models
-      
+	model_type (str)          - can be 'FactorAnalysis' or 'PCA'
+	datas (list)              - entries are channels x time arrays 
+	sweep_dims (list of ints) - dimensionalities to test
+	sigma (float)             - SD of gaussian kernel for data smoothing; default no smoothing
+	model_params (dictionary) - shared parameters for all models generated in sweep
+
+	Returns:
+
+	sweep_results (np array)  - list containing with entries containing scores for each 
+								value in sweep_dims
+
+	TODO:
+	random_state (int)        - if provided, sets the random state for reproducibility or paired comparisons
+	fit PCA using max(sweep_dims) then just subselect eigenvector #s according to sweep_dims
+	'''
+  
+	sweep_len                     = len(sweep_dims)
+	sweep_results                 = np.zeros((sweep_len,)) 
+	models                        = list()
+
+	for i, state_dim in enumerate(sweep_dims):
+		model_params['n_components'] = state_dim
+
+		model, score     = fit_TrialConcatenatedModel(model_type, model_params, data, sigma = sigma)
+		sweep_results[i] = score
+		models.append(model)
+
+	return sweep_results, models
+
 
 
 
 def identifyGoodChannels(lambda_1, lambda_2, B, thresh):
-  '''
-  Greedy algorithm from Degenhart 2020 for identifying good channels. Inputs are:
-    
-    lambda_1 (2D array) - channels x factors loadings matrix for first dataset
-    lambda_2 (2D array) - channels x factors loadings matrix for second dataset
-    B (int)             - number of good channels desired
-  '''
-  
-  channel_set  = np.arange(lambda_1.shape[0])
-  
-  below_thresh = np.where(np.logical_or(np.linalg.norm(lambda_1, axis = 1) < thresh, np.linalg.norm(lambda_1, axis = 1) < thresh))[0]
-  channel_set  = np.setdiff1d(channel_set, below_thresh)
-  
-  while len(channel_set) > B:
-    lambda_1prime = lambda_1[channel_set, :]
-    lambda_2prime = lambda_2[channel_set, :]
-    
-    O, _        = orthogonal_procrustes(lambda_1prime, lambda_2prime)
-    delta       = lambda_1prime.dot(O) - lambda_2prime
-    worst       = np.argmax(np.linalg.norm(delta, axis = 1))
-    
-    channel_set = np.setdiff1d(channel_set, channel_set[worst])
-    
-  return channel_set
+	'''
+	Greedy algorithm from Degenhart 2020 for identifying good channels. Inputs are:
+
+	lambda_1 (2D array) - channels x factors loadings matrix for first dataset
+	lambda_2 (2D array) - channels x factors loadings matrix for second dataset
+	B (int)             - number of good channels desired
+	'''
+
+	channel_set  = np.arange(lambda_1.shape[0])
+
+	below_thresh = np.where(np.logical_or(np.linalg.norm(lambda_1, axis = 1) < thresh, np.linalg.norm(lambda_1, axis = 1) < thresh))[0]
+	channel_set  = np.setdiff1d(channel_set, below_thresh)
+
+	while len(channel_set) > B:
+		lambda_1prime = lambda_1[channel_set, :]
+		lambda_2prime = lambda_2[channel_set, :]
+
+		O, _        = orthogonal_procrustes(lambda_1prime, lambda_2prime)
+		delta       = lambda_1prime.dot(O) - lambda_2prime
+		worst       = np.argmax(np.linalg.norm(delta, axis = 1))
+
+		channel_set = np.setdiff1d(channel_set, channel_set[worst])
+
+	return channel_set
     
 
 

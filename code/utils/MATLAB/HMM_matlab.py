@@ -1,6 +1,6 @@
 import numpy as np
 import matlab.engine
-from simulation_utils import engineArray2Python
+from simulation_matlab import engineArray2Python
 
 
   

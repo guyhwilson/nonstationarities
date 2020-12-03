@@ -114,103 +114,81 @@ def get_StrongTransferPairs(pairs, min_R2, train_frac, block_constraints = None,
     
 
 
-
-def get_DiscreteTargetGrid(struct, gridSize, task = None):
-  '''Divide screen into a n x n grid of possible target locations. Inputs are: 
-  
-    struct (DataStruct) - session data to use 
-    gridSize (int)      - number of rows and columns to chop the screen up into 
-    task (str)          - task data to draw from; defaults to using all 
-    
-    TODO: update to work with new getTrainTest outputs, also deal with screen shifting around for different blocks
-  '''
-  
-  if task is None:
-    targpos_data = struct.targetPos_continuous
-  else:
-    targpos_data = np.concatenate([struct.targetPos[i] for i in np.where(struct.trialType == task)[0]])
-    
-  X_min, X_max  = targpos_data[:, 0].min() - 20, targpos_data[:, 0].max() + 20
-  Y_min, Y_max  = targpos_data[:, 1].min() - 20, targpos_data[:, 1].max() + 20
-  
-  X_loc,Y_loc   = np.meshgrid(np.linspace(X_min, X_max, gridSize), np.linspace(Y_min, Y_max, gridSize))
-  targLocs      = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
-  
-  return targLocs 
   
   
 def getNeuralAndCursor(struct, sigma = None, task = None, blocks = None):
-  '''
-  Code for getting training and test data. Inputs are:
+	'''
+	Code for getting training and test data. Inputs are:
 
-      struct (DataStruct)      - session to train on
-      sigma (float)            - variance of gaussian filter to smooth neural data; default no smoothing
-      task (str)               - task type to train and test on; defaults to all data   
-      blocks (list of int)     - blocks to pull data from; default to all
-      
-  Returns:
-  
-    neural (list)    - entries are time x channels arrays of neural data 
-    cursorErr (list) - entries are time x 2 arrays of cursor position error data
-    targLocs (list)  - entries are tuples containing target locations for each trial 
-  '''
-  
-  if task == None:
-    valid      = np.arange(len(struct.trialType))
-  else:
-    valid      = np.where(struct.trialType == task)[0]
-    
-  if blocks is not None:
-    block_trls = np.where(np.in1d(struct.blockNums, blocks))[0]
-    valid      = np.intersect1d(valid, block_trls)
+	  struct (DataStruct)      - session to train on
+	  sigma (float)            - variance of gaussian filter to smooth neural data; default no smoothing
+	  task (str)               - task type to train and test on; defaults to all data   
+	  blocks (list of int)     - blocks to pull data from; default to all
 
-  if sigma is not None:
-    neural     = [gaussian_filter1d(struct.TX[i].astype('float'), sigma, axis = 0) for i in valid]
-  else:
-    neural     = [struct.TX[i].astype('float') for i in valid]
-    
-  cursorErr           = [struct.targetPos[i] - struct.cursorPos[i] for i in valid]
-  targLocs            = [struct.targetPos[i][0] for i in valid]
-  assert len(neural) == len(cursorErr), "Mismatch between number of trials for neural and cursor feature"
-  
-  return neural, cursorErr, targLocs
+	Returns:
+
+	neural (list)    - entries are time x channels arrays of neural data 
+	cursorErr (list) - entries are time x 2 arrays of cursor position error data
+	targPos (list)   - entries are tuples containing target locations for each trial 
+	'''
+
+	if task == None:
+		valid      = np.arange(len(struct.trialType))
+	else:
+		valid      = np.where(struct.trialType == task)[0]
+
+	if blocks is not None:
+		block_trls = np.where(np.in1d(struct.blockNums, blocks))[0]
+		valid      = np.intersect1d(valid, block_trls)
+
+	if sigma is not None:
+		neural     = [gaussian_filter1d(struct.TX[i].astype('float'), sigma, axis = 0) for i in valid]
+	else:
+		neural     = [struct.TX[i].astype('float') for i in valid]
+
+	cursorErr           = [struct.targetPos[i] - struct.cursorPos[i] for i in valid]
+	#targPos             = [struct.cursorPos[i] for i in valid]
+	targPos             = [struct.targetPos[i][0] for i in valid]
+	assert len(neural) == len(cursorErr), "Mismatch between number of trials for neural and cursor feature"
+
+	return neural, cursorErr, targPos
   
   
 
 def getTrainTest(struct, train_frac = 0.5, sigma = None, task = None, blocks = None, shuffle = False, return_flattened = False):
-  '''
-  Code for getting training and test data. Inputs are:
+	'''
+	Code for getting training and test data. Inputs are:
 
-      struct (DataStruct)      - session to train on
-      train_frac (float)       - fraction of trials to use on training 
-      sigma (float)            - variance of gaussian filter to smooth neural data; default no smoothing
-      task (str)               - task type to train and test on; defaults to all data   
-      blocks (list of int)     - blocks to pull data from; default to all
-      shuffle (bool)           - whether or not to shuffle trials before splitting into train/test
-      return flattened (bool)  - if True, concatenate returned lists into 2D arrays
-      
-  Returns:
-  
-    train_x, test_x (list of 2D arrays) - entries are time x channels arrays of neural data 
-    train_y, tets_y (list of 2D arrays) - entries are time x 2 arrays of cursor position error data
-    
-  if return_flattened, then the above are concatenated in the time/samples dimension.
-  '''
-  
-  neural, cursorErr, _   = getNeuralAndCursor(struct, sigma = sigma, task = task, blocks = blocks)
-  n_trls                 = len(neural)
-  train_ind, test_ind    = train_test_split(np.arange(n_trls), train_size = train_frac, shuffle = shuffle)
-  
-  train_x, test_x     = [neural[i] for i in train_ind], [neural[i] for i in test_ind]
-  train_y, test_y     = [cursorErr[i] for i in train_ind], [cursorErr[i] for i in test_ind]
-  
-  if return_flattened:
-    train_x = np.vstack(train_x)
-    test_x  = np.vstack(test_x)
-    train_y = np.vstack(train_y)
-    test_y  = np.vstack(test_y)
-  
-  return train_x, test_x, train_y, test_y
+	  struct (DataStruct)      - session to train on
+	  train_frac (float)       - fraction of trials to use on training 
+	  sigma (float)            - variance of gaussian filter to smooth neural data; default no smoothing
+	  task (str)               - task type to train and test on; defaults to all data   
+	  blocks (list of int)     - blocks to pull data from; default to all
+	  shuffle (bool)           - whether or not to shuffle trials before splitting into train/test
+	  return flattened (bool)  - if True, concatenate returned lists into 2D arrays
+
+	Returns:
+
+	train_x, test_x (list of 2D arrays) - entries are time x channels arrays of neural data 
+	train_y, test_y (list of 2D arrays) - entries are time x 2 arrays of cursor position error data
+
+	if return_flattened, then the above are concatenated in the time/samples dimension.
+	'''
+
+	neural, cursorErr, _   = getNeuralAndCursor(struct, sigma = sigma, task = task, blocks = blocks)
+	n_trls                 = len(neural)
+	train_ind, test_ind    = train_test_split(np.arange(n_trls), train_size = train_frac, shuffle = shuffle)
+
+	train_x, test_x     = [neural[i] for i in train_ind], [neural[i] for i in test_ind]
+	train_y, test_y     = [cursorErr[i] for i in train_ind], [cursorErr[i] for i in test_ind]
+
+	if return_flattened:
+		train_x = np.vstack(train_x)
+		test_x  = np.vstack(test_x)
+		train_y = np.vstack(train_y)
+		test_y  = np.vstack(test_y)
+
+	return train_x, test_x, train_y, test_y
 
   
 
