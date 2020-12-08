@@ -25,15 +25,15 @@ class DataStruct(object):
 	"""
 	Generates a simplified R struct from cursor data.
 	"""
-	def __init__(self, file):
+	def __init__(self, file, alignScreens = False):
 		dat                = loadmat(file)['dataset'][0][0]
 		self.date          = file.split('t5.')[1].split('.mat')[0]
 
 		self.blockList            = dat[0][0]    # contains block labels 
 		self.gameName             = dat[18]   # of same length as blocklist: contains string label of task for each block
 		self.TX_continuous        = dat[12]
-		self.cursorPos_continuous = dat[6]
-		self.targetPos_continuous = dat[7]
+		self.cursorPos_continuous = dat[6].astype('float')
+		self.targetPos_continuous = dat[7].astype('float')
 		self.onTarget             = dat[8]
 		self.TX_thresh            = dat[13]
 		self.trialEpochs          = dat[15] - 1  # account for MATLAB's 1-indexing
@@ -77,7 +77,10 @@ class DataStruct(object):
 		self.trialType    = np.asarray(trialType)
 
       
-		self.screenNormalized = False
+		self.screenAligned = False
+		if alignScreens:
+			self.alignTaskScreens()
+			
 
 	def alignTaskScreens(self):
 		'''Realign screen positioning across different tasks into a common reference frame by centering all
@@ -86,7 +89,7 @@ class DataStruct(object):
 			struct (DataStruct) - session data to use 
 		'''
 		
-		if not self.screenNormalized:
+		if not self.screenAligned:
 			screen_realignments = np.load('misc_data/screen_realignments.npy', allow_pickle = True).item()
 			
 			for i, task in enumerate(self.trialType):

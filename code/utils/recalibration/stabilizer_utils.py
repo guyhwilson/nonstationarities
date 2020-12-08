@@ -4,9 +4,6 @@ from sklearn.model_selection import cross_val_score
 from sklearn.decomposition import FactorAnalysis, PCA
 from scipy.linalg import orthogonal_procrustes
 
-import sys
-#sys.path.append('')
-#from stabilizer_utils import fit_ConditionAveragedModel
 
 
 def get_FA_ExplainedVariance(fa):

@@ -14,27 +14,27 @@ from preprocess import DataStruct, daysBetween
 
 
 def get_DiscreteTargetGrid(struct, gridSize, task = None):
-  '''Divide screen into a n x n grid of possible target locations. Inputs are: 
-  
-    struct (DataStruct) - session data to use 
-    gridSize (int)      - number of rows and columns to chop the screen up into 
-    task (str)          - task data to draw from; defaults to using all 
-    
-    TODO: update to work with new getTrainTest outputs, also deal with screen shifting around for different blocks
-  '''
-  
-  if task is None:
-    targpos_data = struct.targetPos_continuous
-  else:
-    targpos_data = np.concatenate([struct.targetPos[i] for i in np.where(struct.trialType == task)[0]])
-    
-  X_min, X_max  = targpos_data[:, 0].min() - 20, targpos_data[:, 0].max() + 20
-  Y_min, Y_max  = targpos_data[:, 1].min() - 20, targpos_data[:, 1].max() + 20
-  
-  X_loc,Y_loc   = np.meshgrid(np.linspace(X_min, X_max, gridSize), np.linspace(Y_min, Y_max, gridSize))
-  targLocs      = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
-  
-  return targLocs 
+	'''Divide screen into a n x n grid of possible target locations. Inputs are: 
+
+	struct (DataStruct) - session data to use 
+	gridSize (int)      - number of rows and columns to chop the screen up into 
+	task (str)          - task data to draw from; defaults to using all 
+
+	TODO: update to work with new getTrainTest outputs, also deal with screen shifting around for different blocks
+	'''
+
+	if task is None:
+		targpos_data = struct.targetPos_continuous
+	else:
+		targpos_data = np.concatenate([struct.targetPos[i] for i in np.where(struct.trialType == task)[0]])
+
+	X_min, X_max  = targpos_data[:, 0].min() - 20, targpos_data[:, 0].max() + 20
+	Y_min, Y_max  = targpos_data[:, 1].min() - 20, targpos_data[:, 1].max() + 20
+
+	X_loc,Y_loc   = np.meshgrid(np.linspace(X_min, X_max, gridSize), np.linspace(Y_min, Y_max, gridSize))
+	targLocs      = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
+
+	return targLocs 
 
 
 
