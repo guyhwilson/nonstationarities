@@ -11,15 +11,12 @@
     "    - figure out if returning individual trial lists to train_HMMRecalibrate causes bad performance (linear reg\n",
     "      models show bad performance because the time snippets are so short)\n",
     "    - maybe trash and just add optional return_cursorPos parameter to getTrainTest()\n",
-    "\n"
+    "\n",
+    "*simulator*\n",
+    "- get multi-session repeated recalibration working\n",
+    "- switch over from as-is original HMM and linear regression training code to HMM recal code from T5 offline data\n",
+    "    - e.g. use train_HMMRecalibrate() in place of current code chunks"
    ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": []
   }
  ],
  "metadata": {

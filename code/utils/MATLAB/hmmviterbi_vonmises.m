@@ -1,4 +1,4 @@
-function [currentState, logP] = hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa)
+function [currentState, logP] = hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust_inflection, vmAdjust_exp)
 
 numStates = size(stateTransitions,1);
 L = size(rawDecodeVec,1);
@@ -23,7 +23,7 @@ for count = 1:L
     %2. compute expected precision based on the base kappa and distance to
     %target (very close distances -> very large dispersion in expected
     %angles)
-    vmKappa_adjusted = vmKappa * 1./(1+exp(-(tDists-0.1)*20));
+    vmKappa_adjusted = vmKappa * 1./(1+exp(-(tDists - vmAdjust_inflection) * vmAdjust_exp));
     
     %3. compute VM probability densities
     observedAngle = atan2(rawDecodeVec(count,2), rawDecodeVec(count,1));
