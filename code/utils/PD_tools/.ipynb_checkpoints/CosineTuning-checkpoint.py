@@ -160,13 +160,36 @@ class CosineTuningModel(object):
       preds = self.r_0 + (self.r_max * np.cos(self.theta - angles))
       return preds
     
-    
     def score(self, angles, neural):
       preds = self.predict(angles)
       score = r2_score(neural, preds)
       return score
-    
-#class 
+
+
+
+def fitEncodingMatrix(cursorSig, neural):
+	'''Fit cosine tuning model to neural and cursor data. Inputs are:
+
+		  cursorSig (2D array) - time x 2 array of cursor signals
+		  neural (2D array)    - time x n_chans vector of unit activity
+	 '''
+	n_chans = neural.shape[1]
+	enc     = np.zeros((2, n_chans))
+
+	for i in range(n_chans):
+		angles = getAngles(cursorSig, returnFullAngle = True)
+		mask   =  np.invert(np.isnan(angles))
+		cm     = CosineTuningModel()
+		
+		cm.fit(angles[mask], neural[mask, i])
+
+		PD        = np.asarray([np.cos(cm.theta), np.sin(cm.theta)])
+		PD       *= cm.r_max / cm.r_0
+		enc[:, i] = PD
+
+	return enc
+
+
     
     
     

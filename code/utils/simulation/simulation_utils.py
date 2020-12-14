@@ -25,8 +25,6 @@ def generateUnits(n_units, SNR = 1):
 
 
 
-
-
 def orthogonalizeAgainst(v2, v1):
 	'''
 	Orthogonalize v2 against vector v1, keeping this latter vector the same

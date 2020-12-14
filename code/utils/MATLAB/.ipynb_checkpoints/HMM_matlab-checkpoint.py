@@ -4,7 +4,7 @@ from simulation_matlab import engineArray2Python
 
 
   
-def hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust_inflection = 0.1, vmAdjust_exp = 20., addpath = 'MATLAB/', engine = None):
+def hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust = [0.1, 20.], addpath = 'MATLAB/', engine = None):
 	'''
 	Wrapper function for calling matlab HMM code. Can optionally pass a pre-initialized matlab.engine object for speeding up sequential MATLAB calls 
 	(bypass time required to start each engine call).
@@ -17,14 +17,14 @@ def hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pSt
 		
 	eng.addpath('C:/Users/ghwilson/Documents/projects/nonstationarities/code/utils/MATLAB/')
 	targStates, logP = eng.hmmviterbi_vonmises(matlab.double(rawDecodeVec.tolist()), matlab.double(stateTransitions.tolist()), matlab.double(targLocs.tolist()), 
-											   matlab.double(cursorPos.tolist()), matlab.double(pStateStart.tolist()), float(vmKappa), float(vmAdjust_inflection), float(vmAdjust_exp), nargout = 2)
+											   matlab.double(cursorPos.tolist()), matlab.double(pStateStart.tolist()), float(vmKappa), float(vmAdjust[0]), float(vmAdjust[1]), nargout = 2)
 	if engine is None:
 		eng.quit()
 
 	return engineArray2Python(targStates), logP
 
     
-def hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust_inflection = 0.1, vmAdjust_exp = 20., addpath = 'MATLAB/', engine = None):
+def hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust = [0.1, 20.], addpath = 'MATLAB/', engine = None):
 	'''
 	Wrapper function for calling matlab HMM code. Can optionally pass a pre-initialized matlab.engine object for speeding up sequential MATLAB calls 
 	(bypass time required to start each engine call).
@@ -37,7 +37,7 @@ def hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pSta
 
 	eng.addpath('C:/Users/ghwilson/Documents/projects/nonstationarities/code/utils/MATLAB/')
 	pTargState, pSeq = eng.hmmdecode_vonmises(matlab.double(rawDecodeVec.tolist()), matlab.double(stateTransitions.tolist()), matlab.double(targLocs.tolist()), 
-											   matlab.double(cursorPos.tolist()), matlab.double(pStateStart.tolist()), float(vmKappa), float(vmAdjust_inflection), float(vmAdjust_exp), nargout = 2)
+											   matlab.double(cursorPos.tolist()), matlab.double(pStateStart.tolist()), float(vmKappa), float(vmAdjust[0]), float(vmAdjust[1]), nargout = 2)
 	if engine is None:
 		eng.quit()
 

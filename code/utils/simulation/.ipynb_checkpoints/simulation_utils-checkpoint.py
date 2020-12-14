@@ -22,6 +22,9 @@ def generateUnits(n_units, SNR = 1):
 	return tuning
 
 
+
+
+
 def orthogonalizeAgainst(v2, v1):
 	'''
 	Orthogonalize v2 against vector v1, keeping this latter vector the same
@@ -57,8 +60,6 @@ def simulateTuningShift(tuning, PD_ratio, mean_shift = 0):
 
 
 
-
-
 def generateTargetGrid(gridSize, x_bounds = [-0.5, 0.5], y_bounds = [-0.5, 0.5]):
 	'''
 	Generate target grid for simulator.
@@ -73,7 +74,6 @@ def generateTransitionMatrix(gridSize, stayProb):
 	'''
 	Generate transition probability matrix for simulator targets.
 	'''
-	
 	nStates     = gridSize**2
 	stateTrans  = np.eye(nStates)*stayProb # Define the state transition matrix
 
