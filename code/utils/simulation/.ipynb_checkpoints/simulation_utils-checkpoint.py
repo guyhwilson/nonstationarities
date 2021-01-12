@@ -37,24 +37,30 @@ def orthogonalizeAgainst(v2, v1):
 
 
 
-def simulateTuningShift(tuning, PD_ratio, mean_shift = 0):
+def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0, renormalize = True):
 	''' Simulate tuning shift for units. Inputs are:
 	
 		tuning (2D np array) - n_units x 3 array of tuning data
-		PD_shift (float)     - relative strength of tuning in original PD
+		PD_shrinkage (float) - relative strength of tuning in original PD
 							   subspace following shift 
+		PD_noisevar (float)  - PD noise variance; default = 1; irrelevant
+							   if renormalize = True
 		mean_shift (float)   - strength of average mean change 
 		
 	''' 
 	
 	newTuning             = np.copy(tuning)
-	newPD_component       = np.random.normal(size = (tuning.shape[0], 2))
-	newPD_component, _    = np.linalg.qr(newPD_component, 'reduced')
-	newPD_component[:, 0] = orthogonalizeAgainst(newPD_component[:, 0], tuning[:, 1]) 
-	newPD_component[:, 1] = orthogonalizeAgainst(newPD_component[:, 1], tuning[:, 2]) 
+	newPD_component       = np.random.normal(loc = 0, scale = PD_noisevar**0.5, size = (tuning.shape[0], 2))
+	newTuning[:, 0]      += np.random.normal(loc = 0, scale = mean_shift,     size = tuning.shape[0])
 	
-	newTuning[:,1:]     = (tuning[:,1:] * PD_ratio) + (newPD_component *np.sqrt(1 - PD_ratio**2))
-	newTuning[:, 0]    += np.random.normal(loc = 0, scale = mean_shift, size = tuning.shape[0])
+	if renormalize:
+		newPD_component, _    = np.linalg.qr(newPD_component, 'reduced')
+		newPD_component[:, 0] = orthogonalizeAgainst(newPD_component[:, 0], tuning[:, 1]) 
+		newPD_component[:, 1] = orthogonalizeAgainst(newPD_component[:, 1], tuning[:, 2]) 
+		newTuning[:,1:]       = (tuning[:,1:] * PD_shrinkage) + (newPD_component *np.sqrt(1 - PD_shrinkage**2))
+		
+	else:
+		newTuning[:,1:] = (tuning[:,1:] * PD_shrinkage) + newPD_component 
 	
 	return newTuning
 
