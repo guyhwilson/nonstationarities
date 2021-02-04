@@ -38,7 +38,7 @@ def get_DiscreteTargetGrid(struct, gridSize, task = None):
 
 
 
-def prep_HMMData(struct, train_frac = 1., task = None, blocks = None, return_flattened = False):
+def prep_HMMData(struct, train_frac = 1., task = None, blocks = None, cutStart = None, return_flattened = False):
 	'''
 	Code for generating input data for HMM using session data. Inputs are:
 
@@ -64,6 +64,10 @@ def prep_HMMData(struct, train_frac = 1., task = None, blocks = None, return_fla
 	
 	n_trls                           = len(neural)
 	train_ind, test_ind              = train_test_split(np.arange(n_trls), train_size = train_frac, shuffle = False)
+	
+	if cutStart is not None:
+		neural    = [neural[i][cutStart:, :] for i in range(n_trls)]
+		cursorErr = [cursorErr[i][cutStart:, :] for i in range(n_trls)]
 
 	train_neural, test_neural        = [neural[i] for i in train_ind], [neural[i] for i in test_ind]
 	train_cursorErr, test_cursorErr  = [cursorErr[i] for i in train_ind], [cursorErr[i] for i in test_ind]

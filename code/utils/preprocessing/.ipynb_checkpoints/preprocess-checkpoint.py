@@ -34,14 +34,14 @@ class DataStruct(object):
 		self.TX_continuous        = dat[12]
 		self.cursorPos_continuous = dat[6].astype('float')
 		self.targetPos_continuous = dat[7].astype('float')
-		self.onTarget             = dat[8]
+		self.decClick_continuous  = np.concatenate(dat[11])
+		self.onTarget             = np.concatenate(dat[8])
 		self.TX_thresh            = dat[13]
 		self.trialEpochs          = dat[15] - 1  # account for MATLAB's 1-indexing
-		self.trialEpochs[:, 1]   += 1            # account for MATLAB's inclusive indexing 
+		self.trialEpochs[:, 1]   -= 1            # account for MATLAB's inclusive indexing 
 		self.sysClock             = dat[4]
 		self.nspClocks            = dat[5]
 		self.decVel               = dat[10]
-		self.decClick             = dat[11]
 		self.n_trials             = self.trialEpochs.shape[0]
 		self.n_channels           = self.TX_continuous.shape[1]  
 
@@ -52,9 +52,10 @@ class DataStruct(object):
 
 		targetSize, cursorSize = list(), list()
 		cursorPos, targetPos   = list(), list()
+		decClick               = list()
 
 		for i in range(self.n_trials):
-			start, stop = self.trialEpochs[i, :]
+			start, stop = self.trialEpochs[i, :] 
 
 			targetSize.append(dat[1][start][0])
 			cursorSize.append(dat[2][start][0])
@@ -66,17 +67,19 @@ class DataStruct(object):
 			TX.append(deepcopy(self.TX_continuous[start:stop, :]))
 			cursorPos.append(deepcopy(self.cursorPos_continuous[start:stop, :]))
 			targetPos.append(deepcopy(self.targetPos_continuous[start:stop, :]))
+			decClick.append(deepcopy(self.decClick_continuous[start:stop]))
+			
 
 		self.TX           = TX
 		self.targetSize   = np.asarray(targetSize)
 		self.cursorSize   = np.asarray(cursorSize)
 		self.targetPos    = targetPos
 		self.cursorPos    = cursorPos
+		self.decClick     = np.asarray(decClick)
 		self.blockNums    = np.asarray(blockNums)
-		self.IsSuccessful = np.asarray(isSuccessful)
+		self.IsSuccessful = np.asarray(isSuccessful, dtype = 'object')
 		self.trialType    = np.asarray(trialType)
 
-      
 		self.screenAligned = False
 		if alignScreens:
 			self.alignTaskScreens()

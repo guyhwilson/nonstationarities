@@ -23,8 +23,6 @@ def generateUnits(n_units, SNR = 1):
 
 
 
-
-
 def orthogonalizeAgainst(v2, v1):
 	'''
 	Orthogonalize v2 against vector v1, keeping this latter vector the same
@@ -53,13 +51,19 @@ def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0, r
 	newPD_component       = np.random.normal(loc = 0, scale = PD_noisevar**0.5, size = (tuning.shape[0], 2))
 	newTuning[:, 0]      += np.random.normal(loc = 0, scale = mean_shift,     size = tuning.shape[0])
 	
-	if renormalize:
+	if renormalize:  # adjust so that encoding norm same as earlier 
+		
+		tuningNorm        = np.mean(np.linalg.norm(tuning[:, 1:], axis = 0))  # will rescale to this norm
+		newTuning[:, 1:] /= tuningNorm                                        # adjust to be unit vector for now 
+		
 		newPD_component, _    = np.linalg.qr(newPD_component, 'reduced')
 		newPD_component[:, 0] = orthogonalizeAgainst(newPD_component[:, 0], tuning[:, 1]) 
 		newPD_component[:, 1] = orthogonalizeAgainst(newPD_component[:, 1], tuning[:, 2]) 
-		newTuning[:,1:]       = (tuning[:,1:] * PD_shrinkage) + (newPD_component *np.sqrt(1 - PD_shrinkage**2))
+		newTuning[:,1:]       = (newTuning[:,1:] * PD_shrinkage) + (newPD_component *np.sqrt(1 - PD_shrinkage**2))  # unit norm vectors
 		
-	else:
+		newTuning[:, 1:]     *= tuningNorm  # now scale up/down to match original data 
+		
+	else:  # use simpler approach: new = shrinkage * old + noise 
 		newTuning[:,1:] = (tuning[:,1:] * PD_shrinkage) + newPD_component 
 	
 	return newTuning

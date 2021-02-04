@@ -1,5 +1,6 @@
 function [currentState, logP] = hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust_inflection, vmAdjust_exp)
 
+
 numStates = size(stateTransitions,1);
 L = size(rawDecodeVec,1);
 currentState = zeros(1,L);
