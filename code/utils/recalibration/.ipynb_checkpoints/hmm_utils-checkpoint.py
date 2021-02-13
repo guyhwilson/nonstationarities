@@ -106,7 +106,7 @@ def HMM_estimate(decOutput, cursorPos, stateTrans, pStateStart, targLocs, vmKapp
 	
 	for i in range(n_trials):
 		targs      = hmmviterbi_vonmises(decOutput[i], stateTrans, targLocs, cursorPos[i], pStateStart, vmKappa, vmAdjust = vmAdjust, engine = engine)[0]
-		pTargs     =  hmmdecode_vonmises(decOutput[i], stateTrans, targLocs, cursorPos[i], pStateStart, vmKappa, vmAdjust = vmAdjust, engine = engine)[0]
+		pTargs     = hmmdecode_vonmises(decOutput[i], stateTrans, targLocs, cursorPos[i], pStateStart, vmKappa, vmAdjust = vmAdjust, engine = engine)[0]
 		targStates.append(targs)
 		pTargState.append(pTargs)
 	

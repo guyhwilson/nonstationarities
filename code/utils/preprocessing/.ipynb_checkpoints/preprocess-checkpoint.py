@@ -71,14 +71,14 @@ class DataStruct(object):
 			
 
 		self.TX           = TX
-		self.targetSize   = np.asarray(targetSize)
-		self.cursorSize   = np.asarray(cursorSize)
+		self.targetSize   = np.asarray(targetSize, dtype = 'object')
+		self.cursorSize   = np.asarray(cursorSize, dtype = 'object')
 		self.targetPos    = targetPos
 		self.cursorPos    = cursorPos
-		self.decClick     = np.asarray(decClick)
-		self.blockNums    = np.asarray(blockNums)
+		self.decClick     = np.asarray(decClick, dtype = 'object')
+		self.blockNums    = np.asarray(blockNums, dtype = 'object')
 		self.IsSuccessful = np.asarray(isSuccessful, dtype = 'object')
-		self.trialType    = np.asarray(trialType)
+		self.trialType    = np.asarray(trialType, dtype = 'object')
 
 		self.screenAligned = False
 		if alignScreens:

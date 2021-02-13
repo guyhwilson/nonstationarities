@@ -139,7 +139,7 @@ def py_hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, p
 
 
 
-def click_hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, clickSignal, pStateStart, vmKappa, vmAdjust = [0.1, 20.], verbose = False):
+def click_hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, clickSignal, getClickProbs, pStateStart, vmKappa, vmAdjust = [0.1, 20.], verbose = False):
 	'''Run viterbi algorithm to find most likely sequence of target states given the cursor position and decoder outputs. Inputs are:
 
 		rawDecodeVec (2D array)     - time x 2 array containing decoder outputs at each timepoint
@@ -147,6 +147,8 @@ def click_hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPo
 		targLocs (2D array)         - n_states x 2 array containing corresponding target locations for each state
 		cursorPos (2D array)        - time x 2 array of cursor positions
 		clickSignal (vector)        - indicator for whether or not click detected at each time point (time x 1)
+		getClickProbs (method)      - a function f: target_distance --> prob(Click | target_distance); outputs must be 
+									  bounded in [0, 1]
 		pStateStart (vector)        - starting probabilities for each state 
 		vmKappa (float)             - precision parameter for Von Mises observation model
 		vmAdjust (tuple)            - contains inflection point and exponential steepness of logistic fcn
@@ -184,19 +186,12 @@ def click_hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPo
 
 		# 4. compute click probability densities
 		observedClick = clickSignal[count]
-		x_mat         = np.dstack([tDists**i for i in range(5)]).squeeze()
-		coefs         = [ 0.00000000e+00, -1.33178954e-03,  5.05269183e-06, -6.29799392e-09, 2.57353522e-12]
-		probClick     = x_mat.dot(coefs) + 0.13775515475153405
-		
-		probClick[tDists > 1000] = 0.12
-		
+		probClick     = getClickProbs(tDists)
 		clickProbLog  = np.log(observedClick * probClick + ((1 - observedClick) * (1 - probClick)))
 		
 		if np.isnan(clickProbLog).any():
 			print(count, observedClick, probClick, tDists.max())
 			break
-		#print(observedClick * probClick + ((1 - observedClick) * probClick))
-		#print(clickProbLog.shape, vmProbLog.shape)
 		vmProbLog    += clickProbLog.squeeze()
 
 		tmpV          = vOld + logTR
@@ -223,13 +218,15 @@ def click_hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPo
 
 
 
-def click_hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, clickSignal, pStateStart, vmKappa, vmAdjust = [0.1, 20.], verbose = False):
+def click_hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, clickSignal, getClickProbs, pStateStart, vmKappa, vmAdjust = [0.1, 20.], verbose = False):
     '''Run viterbi algorithm to find marginal probabilities of hidden states at each timestep (given observed data). Inputs are:
     
         rawDecodeVec (2D array)     - time x 2 array containing decoder outputs at each timepoint
         stateTransitions (2D array) - transition probabilities; n_states x n_states
         targLocs (2D array)         - n_states x 2 array containing corresponding target locations for each state
         cursorPos (2D array)        - time x 2 array of cursor positions
+		getClickProbs (method)      - a function f: target_distance --> prob(Click | target_distance); outputs must be 
+									  bounded in [0, 1]
         pStateStart (vector)        - starting probabilities for each state 
         vmKappa (float)             - precision parameter for Von Mises observation model
         vmAdjust (tuple)            - contains inflection point and exponential steepness of logistic fcn
@@ -261,12 +258,23 @@ def click_hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos
         # 3. compute VM probability densities
         observedAngle = observedAngle_all[count - 1]
         vmProbLog     = np.exp((vmKappa_adjusted * np.cos(observedAngle - expectedAngle)) - np.log(2*np.pi* np.i0(vmKappa_adjusted)))
+		
+		# 4. compute click probability densities
+		observedClick = clickSignal[count - 1]
+		probClick     = getClickProbs(tDists)
+		clickProbLog  = np.log(observedClick * probClick + ((1 - observedClick) * (1 - probClick)))
+
+		if np.isnan(clickProbLog).any():
+			print(count - 1, observedClick, probClick, tDists.max())
+			break
+		vmProbLog    += clickProbLog.squeeze()
 
         fs[:,count]   = vmProbLog * (stateTransitions.T.dot(fs[:, count-1]))
         s[count]      =  sum(fs[:,count])
         fs[:,count]  /=  s[count]
     
     bs = np.ones((numStates,L))
+	
     for count in reversed(range(0, L - 1)):
         # 1. compute distance from the cursor to each target, and expected angle for that target
         tDists        = np.linalg.norm(targLocs - cursorPos[count, :])
@@ -280,6 +288,16 @@ def click_hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos
         # 3. compute VM probability densities
         observedAngle = observedAngle_all[count]
         vmProbLog     = np.exp((vmKappa_adjusted * np.cos(observedAngle - expectedAngle)) - np.log(2*np.pi* np.i0(vmKappa_adjusted)))
+		
+		# 4. compute click probability densities
+		observedClick = clickSignal[count]
+		probClick     = getClickProbs(tDists)
+		clickProbLog  = np.log(observedClick * probClick + ((1 - observedClick) * (1 - probClick)))
+		
+		if np.isnan(clickProbLog).any():
+			print(count, observedClick, probClick, tDists.max())
+			break
+		vmProbLog    += clickProbLog.squeeze()
 
         probWeightBS = bs[:,count + 1] * vmProbLog
         tmp          = stateTransitions.dot(probWeightBS)

@@ -1,4 +1,5 @@
 import numpy as np
+import glob
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from scipy.ndimage import gaussian_filter1d
@@ -11,12 +12,26 @@ from preprocess import DataStruct, daysBetween
 
 
 
-def get_SessionPairs(data_files, min_nblocks, max_ndays, manually_remove = []):
+def get_Sessions(files, min_nblocks = 0):
+	'''files (list of str) - list containing paths to each session's data
+       min_nblocks (int)    - minimum number of blocks for a session to be included
+	'''
+	
+	sessions = list()
+	for f in files:
+		dat   = DataStruct(f)
+		if len(dat.blockList) >= min_nblocks:
+			sessions.append(f)
+	
+	return sessions
+
+
+
+def get_SessionPairs(data_files, max_ndays, manually_remove = []):
     '''Generate pairs of sessions for recalibration analyses with user-specified restrictions
        on session characteristics. Inputs are:
        
            data_files (list of str)      - list containing paths to each session's data
-           min_nblocks (int)             - minimum number of blocks for a session to be included
            max_ndays (int)               - maximum number of days that sessions can be apart
            manually_remove (list of str) - remove specified files; defaults to no removal
     '''
@@ -24,13 +39,7 @@ def get_SessionPairs(data_files, min_nblocks, max_ndays, manually_remove = []):
     # remove manually specified by sessions:
     sessions   = np.setdiff1d(data_files, manually_remove)
     n_blocks   = np.zeros(( len(sessions), ))
-    
-    # remove low-data sessions:
-    for i, file in enumerate(sessions):
-        n_blocks[i] = len(DataStruct(file).blockList)
         
-    sessions = sessions[n_blocks >= min_nblocks] 
-    
     # keep pairs of sessions that are at most max_ndays apart
     pairs   = list()
     for i, A in enumerate(sessions):
