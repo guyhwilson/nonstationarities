@@ -1,4 +1,6 @@
 %%
+% Code by Frank Willett
+
 %for a reproducible result
 rng(1);
 

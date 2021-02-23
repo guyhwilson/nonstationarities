@@ -1,5 +1,7 @@
 function [posTraj, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt] = simulateBCIFitts(neuralTuning, D, alpha, beta, nDelaySteps, delT, nStepsForSim)
     %%
+    % Code by Frank Willett.
+    
     %First we define the internal state estimator of the BCI user (which we simulate
     %here with a Kalman filter).
     

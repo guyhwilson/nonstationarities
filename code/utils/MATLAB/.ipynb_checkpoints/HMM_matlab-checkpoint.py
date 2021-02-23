@@ -4,7 +4,7 @@ from simulation_matlab import engineArray2Python
 
 
   
-def hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust = [0.1, 20.], addpath = 'MATLAB/', engine = None):
+def MAT_hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust = [0.1, 20.], addpath = 'MATLAB/', engine = None):
 	'''
 	Wrapper function for calling matlab HMM code. Can optionally pass a pre-initialized matlab.engine object for speeding up sequential MATLAB calls 
 	(bypass time required to start each engine call).
@@ -24,7 +24,7 @@ def hmmviterbi_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pSt
 	return engineArray2Python(targStates), logP
 
     
-def hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust = [0.1, 20.], addpath = 'MATLAB/', engine = None):
+def MAT_hmmdecode_vonmises(rawDecodeVec, stateTransitions, targLocs, cursorPos, pStateStart, vmKappa, vmAdjust = [0.1, 20.], addpath = 'MATLAB/', engine = None):
 	'''
 	Wrapper function for calling matlab HMM code. Can optionally pass a pre-initialized matlab.engine object for speeding up sequential MATLAB calls 
 	(bypass time required to start each engine call).

@@ -10,22 +10,6 @@ from preprocess import DataStruct, daysBetween
 
 
 
-def get_ClickSessions(files, min_nblocks = 0):
-	''' Get valid click sessions for a participant. Inputs are:
-	
-	   files (list of str) - list containing paths to each session's data
-       min_nblocks (int)    - minimum number of blocks for a session to be included
-	'''
-	
-	click_sessions = list()
-	for f in files:
-		dat   = DataStruct(f)
-		if dat.decClick_continuous.max() > 0 and len(dat.blockList) >= min_nblocks:
-			click_sessions.append(f)
-	
-	return click_sessions
-
-
 
 
 def get_T5_ClickTrainTest(dat, train_frac):

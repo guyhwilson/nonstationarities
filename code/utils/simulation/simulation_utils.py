@@ -35,6 +35,7 @@ def orthogonalizeAgainst(v2, v1):
 
 
 
+
 def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0, renormalize = True):
 	''' Simulate tuning shift for units. Inputs are:
 	
