@@ -52,41 +52,47 @@ def PermutationTest(group1, group2, permutations = 1000, tail = 'both'):
 
     return pval 
   
+
+    
+def signTest(group1, group2 = None, permutations = 1000, tail = 'both'):
+    '''Paired-sample permutation test. Inputs are:
   
-def signTest(group1, group2, permutations = 1000, tail = 'both'):
-  '''Paired-sample permutation test. Inputs are:
-  
-      group1/2 (np.array) - holds test data 
+      group1/2 (np.array) - holds test data; if group2 is None, function assumes group1 holds pairwise differences
       permutations (int)  - number of permutations to run
       tail (str)          - tails to be tested; options are 'left', 'right', and
                             'both'
                             
       test design reference: 
         https://www.uvm.edu/~dhowell/StatPages/ResamplingWithR/RandomMatchedSample/RandomMatchedSampleR.html
-  '''
-  
-  null_distribution = np.zeros((permutations,))
+    '''
 
-  if len(group1.shape) > 1:
-      if (group1.shape[1] > group1.shape[0]):
-          group1  = np.transpose(group1)
-  if len(group2.shape) > 1:
-      if (group2.shape[1] > group2.shape[0]):
-          group2  = np.transpose(group2)
+    null_distribution = np.zeros((permutations,))
+    
+    if group2 is not None:
+        if len(group1.shape) > 1:
+            if (group1.shape[1] > group1.shape[0]):
+                group1  = np.transpose(group1)
+        if len(group2.shape) > 1:
+            if (group2.shape[1] > group2.shape[0]):
+                group2  = np.transpose(group2)
+        pairwise_diffs     = group1 - group2   
+        
+    else: 
+        pairwise_diffs = group1
+        
+        
+    for run in range(permutations):
+        randomized_data = pairwise_diffs * np.random.randint(2, size = len(group1))
+        null_distribution[run] = np.mean(randomized_data)
 
-  pairwise_diffs     = group1 - group2    
-  for run in range(permutations):
-      randomized_data = pairwise_diffs * np.random.randint(2, size = len(group1))
-      null_distribution[run] = np.mean(randomized_data)
+    # calculate p-value 
+    observed = np.mean(pairwise_diffs)
 
-  # calculate p-value 
-  observed = np.mean(pairwise_diffs)
+    if (tail == 'left'):
+        pval = (np.sum(observed >= null_distribution) + 1) / (permutations + 1)
+    elif (tail == 'right'):
+        pval = (np.sum(observed <= null_distribution) + 1) / (permutations + 1)
+    else:
+        pval = (np.sum(np.abs(observed) <= np.abs(null_distribution)) + 1) / (permutations + 1)
 
-  if (tail == 'left'):
-      pval = (np.sum(observed >= null_distribution) + 1) / (permutations + 1)
-  elif (tail == 'right'):
-      pval = (np.sum(observed <= null_distribution) + 1) / (permutations + 1)
-  else:
-      pval = (np.sum(np.abs(observed) <= np.abs(null_distribution)) + 1) / (permutations + 1)
-
-  return pval, null_distribution
+    return pval, null_distribution

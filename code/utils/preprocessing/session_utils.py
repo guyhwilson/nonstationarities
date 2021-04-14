@@ -158,7 +158,7 @@ def getNeuralAndCursor(struct, sigma = None, task = None, blocks = None):
         valid      = np.intersect1d(valid, block_trls)
 
     if sigma is not None:
-        print('Here?')
+        #print('Here?')
         neural     = [gaussian_filter1d(struct.TX[i].astype('float'), sigma, axis = 0) for i in valid]
     else:
         neural     = [struct.TX[i].astype('float') for i in valid]

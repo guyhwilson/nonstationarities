@@ -32,7 +32,7 @@ def traintest_DecoderSupervised(train_x, test_x, train_y, test_y, decoder = None
     test_means         = test_x_continuous.mean(axis = 0)
     
     if decoder is None:
-        decoder    = LinearRegression(fit_intercept = False, normalize = False).fit(train_x_continuous - train_means, train_y_continuous)
+        decoder    = LinearRegression(fit_intercept = True, normalize = False).fit(train_x_continuous - train_means, train_y_continuous)
         
     if meanRecal:
         test_scores = [decoder.score(x - test_means, y) for x, y  in zip(test_x, test_y)] 

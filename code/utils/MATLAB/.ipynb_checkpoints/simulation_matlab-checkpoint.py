@@ -42,7 +42,7 @@ def simulateBCI_KF(alpha, beta, nDelaySteps, delT, addpath = 'utils/MATLAB/', en
 	if engine is None:
 		eng.quit()
 
-	return engineArray2Python(L_kalman), engineArray2Python(A_aug), engineArray2Python(B_aug), engineArray2Python(C_aug), engineArray2Python(D_aug), engineArray2Python(G_aug), engineArray2Python(H_aug),
+	return engineArray2Python(L_kalman), engineArray2Python(A_aug), engineArray2Python(B_aug), engineArray2Python(C_aug), engineArray2Python(D_aug), engineArray2Python(G_aug), engineArray2Python(H_aug)
 
 
 

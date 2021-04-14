@@ -37,14 +37,16 @@ def get_DiscreteTargetGrid(struct, gridSize, task = None):
     return targLocs 
 
 
-def prep_HMMData(struct, train_frac = 1., task = None, blocks = None, cutStart = None, return_flattened = False):
+def prep_HMMData(struct, train_frac = 1., sigma = None, task = None, blocks = None, cutStart = None, return_flattened = False):
     '''
     Code for generating input data for HMM using session data. Inputs are:
 
     struct (DataStruct)      - session to train on
     train_frac (float)       - fraction of dataset to use on training 
+    sigma (float)            - gaussian smoothing width (default: no smoothing)
     task (str)               - task type to train and test on
     blocks (str)             - blocks to use 
+    cutStart (int)           - optionally remove # timepoints from beginning of each trial
 
     Returns:
 
@@ -59,7 +61,7 @@ def prep_HMMData(struct, train_frac = 1., task = None, blocks = None, cutStart =
     - maybe trash and just add optional return_cursorPos parameter to getTrainTest()
     '''
         
-    neural, cursorErr, targPos       = getNeuralAndCursor(struct, sigma = None, task = task, blocks = blocks)
+    neural, cursorErr, targPos       = getNeuralAndCursor(struct, sigma = sigma, task = task, blocks = blocks)
     
     n_trls                           = len(neural)
     train_ind, test_ind              = train_test_split(np.arange(n_trls), train_size = train_frac, shuffle = False)
@@ -151,7 +153,7 @@ def train_HMMRecalibrate(decoder, neural, cursorPos, stateTrans, pStateStart, ta
     maxProb     = np.max(pTargState, axis = 0)              
     highProbIdx = np.where(maxProb > probThreshold)[0]                   # find time periods of high certainty
     
-    inferredTargLoc = targLocs[targStates.astype('int').flatten() - 1,:] # find predicted target locations for high prob times
+    inferredTargLoc = targLocs[targStates.astype('int').flatten(), :]    # find predicted target locations for high prob times
     inferredPosErr  = inferredTargLoc - cursorPos_flattened              # generate inferred cursorErr signals
 
     # if data too noisy or sessions too far apart, HMM may not have any valid high confidence time points
@@ -167,3 +169,5 @@ def train_HMMRecalibrate(decoder, neural, cursorPos, stateTrans, pStateStart, ta
             print('ProbThreshold too high. Lowering by 0.1')
 
     return decoder
+
+

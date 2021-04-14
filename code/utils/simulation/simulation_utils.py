@@ -22,6 +22,22 @@ def generateUnits(n_units, SNR = 1):
 	return tuning
 
 
+def simulateUnitActivity(tuning, noise, nSteps):
+    '''Generate neural activity for random velocity movements. Inputs are:
+        
+        tuning (2D array) - channels x 3 array; 1st column = baselines, latter 
+                            are x and y-velocity tuning coefficients
+        noise (float)     - noise variance
+        nSteps (int)      - number of timesteps to simulate'''
+    
+    nUnits         = tuning.shape[0]
+    calVelocity    = np.random.normal(size = (nSteps, 2))
+    calNeural      = calVelocity.dot(tuning[:,1:].T)  + np.random.normal(loc = tuning[:, 0].T, scale = noise, size = (nSteps, nUnits))  # FR = <velocity, PD> + baseline + noise 
+    
+    return calNeural, calVelocity
+
+
+
 
 def orthogonalizeAgainst(v2, v1):
 	'''
@@ -31,7 +47,7 @@ def orthogonalizeAgainst(v2, v1):
 	u2  = v2 - (v2.dot(v1) * v1)
 	u2 /= np.linalg.norm(u2)
 	
-	return u2
+	return u2 * np.linalg.norm(v2)
 
 
 
@@ -95,21 +111,3 @@ def generateTransitionMatrix(gridSize, stayProb):
 	pStateStart = np.zeros((nStates,1)) + 1/nStates
 	
 	return stateTrans, pStateStart
-	
-	
-
-
-
-#def normalize_Decoder():
-	
-	
-
-	
-
-	
-
-
-#def simulate_
-	
-	
-	

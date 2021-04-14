@@ -74,6 +74,11 @@ def get_WindowedFeatures(features, window, padding = 0):
 
 
 
+
+
+
+
+
 class ClickDecoder(object):
 	'''Logistic regression pipeline for click decoding. Steps are PCA --> feature binning --> logreg. '''
 	def __init__(self, window, n_components, PCA_window = 20):
