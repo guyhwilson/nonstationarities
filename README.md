@@ -1,5 +1,6 @@
 ## **Nonstationarities project**
 
+
 ## Setup 
 Requires Python 3 and anaconda/miniconda. To setup python virtual environment, use the following command from this level of directory:
 
@@ -15,9 +16,15 @@ This outputs a file `TODO FILL IN`. Then pass this into the HMM recalibration co
 
 `$ python HMMrecalibrate_VKF.py [file, str]`
 
+## Running in Sherlock
 
+Log into sherlock and run the following command to launch jupyter for the project:
 
+`sbatch -p owners -t 14:00:00 -c 5 --mem=64gb /home/users/ghwilson/projects/nonstationarities/startJN.sh`
 
+Then ssh into the compute node that it launches on:
+
+`ssh $SLURM_NODELIST -L 30100:localhost:30100`
 
 ---------------------------
 
