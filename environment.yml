@@ -1,0 +1,4 @@
+name: HMMrecal
+channels:
+  - defaults
+prefix: C:\Users\ghwilson\miniconda3\envs\HMMrecal
