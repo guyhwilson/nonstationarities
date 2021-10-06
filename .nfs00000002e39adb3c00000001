@@ -1,0 +1,598 @@
+[I 03:13:37.378 NotebookApp] Writing notebook server cookie secret to /tmp/jupyter/notebook_cookie_secret
+[I 03:13:39.937 NotebookApp] Serving notebooks from local directory: /home/users/ghwilson/projects/nonstationarities
+[I 03:13:39.937 NotebookApp] 0 active kernels 
+[I 03:13:39.937 NotebookApp] The Jupyter Notebook is running at: http://localhost:30100/?token=17b00b2cbbdebb01f30e12babc5621163c062b9f7fb34dff
+[I 03:13:39.937 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 03:13:39.938 NotebookApp] 
+    
+    Copy/paste this URL into your browser when you connect for the first time,
+    to login with a token:
+        http://localhost:30100/?token=17b00b2cbbdebb01f30e12babc5621163c062b9f7fb34dff
+[I 09:07:59.255 NotebookApp] 302 GET /?token=17b00b2cbbdebb01f30e12babc5621163c062b9f7fb34dff (127.0.0.1) 0.45ms
+[W 09:08:22.740 NotebookApp] delete /slurm-35264332.out
+[W 09:08:22.873 NotebookApp] delete /slurm-35395869.out
+[W 09:08:22.927 NotebookApp] delete /slurm-35370673.out
+[W 09:08:22.993 NotebookApp] delete /slurm-35357345.out
+[W 09:08:23.057 NotebookApp] delete /slurm-35375115.out
+[I 09:09:09.775 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 09:17:13.931 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 09:18:16.016 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 09:19:30.480 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:27:53.636 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:28:52.750 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:30:13.303 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:31:24.758 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:31:46.009 NotebookApp] Saving file at /batchSweep.sh
+[I 10:32:31.991 NotebookApp] Saving file at /batchSweep.sh
+[I 10:34:00.617 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:34:12.487 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:35:07.207 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[W 10:37:05.847 NotebookApp] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20211006031337 (127.0.0.1) 29.62ms referer=http://localhost:30100/notebooks/notebooks/optimize_vanillaHMM.ipynb
+[I 10:37:06.424 NotebookApp] Kernel started: 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 10:37:07.870 NotebookApp] Adapting to protocol v5.1 for kernel 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 10:38:46.693 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 10:39:06.327 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 10:41:06.313 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 10:42:43.699 NotebookApp] Saving file at /batchSweep.sh
+[I 10:56:56.866 NotebookApp] Saving file at /batchSweep.sh
+[I 10:58:03.285 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:04:19.349 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:06:44.504 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:07:59.772 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[W 11:09:55.717 NotebookApp] delete /slurm-35433414_0.out
+[W 11:09:55.723 NotebookApp] delete /slurm-35433414_1.out
+[W 11:09:55.726 NotebookApp] delete /slurm-35433414_13.out
+[W 11:09:55.729 NotebookApp] delete /slurm-35433414_12.out
+[W 11:09:55.733 NotebookApp] delete /slurm-35433414_11.out
+[W 11:09:55.737 NotebookApp] delete /slurm-35433414_10.out
+[W 11:09:55.740 NotebookApp] delete /slurm-35433414_16.out
+[W 11:09:55.744 NotebookApp] delete /slurm-35433414_17.out
+[W 11:09:55.748 NotebookApp] delete /slurm-35433414_19.out
+[W 11:09:55.751 NotebookApp] delete /slurm-35433414_3.out
+[W 11:09:55.755 NotebookApp] delete /slurm-35433414_18.out
+[W 11:09:55.759 NotebookApp] delete /slurm-35433414_14.out
+[W 11:09:55.763 NotebookApp] delete /slurm-35433414_4.out
+[W 11:09:55.766 NotebookApp] delete /slurm-35433414_15.out
+[W 11:09:55.769 NotebookApp] delete /slurm-35433414_5.out
+[W 11:09:55.773 NotebookApp] delete /slurm-35433414_8.out
+[W 11:09:55.777 NotebookApp] delete /slurm-35433414_9.out
+[W 11:09:55.781 NotebookApp] delete /slurm-35433414_7.out
+[W 11:09:55.785 NotebookApp] delete /slurm-35433414_6.out
+[W 11:09:55.788 NotebookApp] delete /slurm-35433414_2.out
+[W 11:09:55.791 NotebookApp] delete /slurm-35433414_20.out
+[I 11:13:47.851 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:18:05.989 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:19:31.565 NotebookApp] Saving file at /batchSweep.sh
+[I 11:22:01.540 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:25:01.415 NotebookApp] Saving file at /batchSweep.sh
+[W 11:25:20.128 NotebookApp] delete /slurm-35434649_0.out
+[W 11:25:20.133 NotebookApp] delete /slurm-35434649_10.out
+[W 11:25:20.138 NotebookApp] delete /slurm-35434649_11.out
+[W 11:25:20.141 NotebookApp] delete /slurm-35434649_12.out
+[W 11:25:20.145 NotebookApp] delete /slurm-35434649_14.out
+[W 11:25:20.170 NotebookApp] delete /slurm-35434649_16.out
+[W 11:25:20.173 NotebookApp] delete /slurm-35434649_18.out
+[W 11:25:20.177 NotebookApp] delete /slurm-35434649_19.out
+[W 11:25:20.180 NotebookApp] delete /slurm-35434649_1.out
+[W 11:25:20.184 NotebookApp] delete /slurm-35434649_15.out
+[W 11:25:20.188 NotebookApp] delete /slurm-35434649_17.out
+[W 11:25:20.193 NotebookApp] delete /slurm-35434649_2.out
+[W 11:25:20.197 NotebookApp] delete /slurm-35434649_20.out
+[W 11:25:20.201 NotebookApp] delete /slurm-35434649_9.out
+[W 11:25:20.205 NotebookApp] delete /slurm-35434649_3.out
+[W 11:25:20.209 NotebookApp] delete /slurm-35434649_8.out
+[W 11:25:20.212 NotebookApp] delete /slurm-35434649_13.out
+[W 11:25:20.216 NotebookApp] delete /slurm-35434649_7.out
+[W 11:25:20.220 NotebookApp] delete /slurm-35434649_5.out
+[W 11:25:20.224 NotebookApp] delete /slurm-35434649_6.out
+[W 11:25:20.229 NotebookApp] delete /slurm-35434649_4.out
+[I 11:27:27.698 NotebookApp] Saving file at /batchSweep.sh
+[I 11:39:08.247 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 11:41:08.255 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 11:43:08.266 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 11:44:14.815 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 11:44:31.793 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 11:46:12.502 NotebookApp] Saving file at /batchSweep.sh
+[I 11:47:25.815 NotebookApp] Saving file at /batchSweep.sh
+[I 11:48:41.240 NotebookApp] Saving file at /batchSweep.sh
+[I 11:51:34.880 NotebookApp] Saving file at /batchSweep.sh
+[I 11:53:52.141 NotebookApp] Saving file at /batchSweep.sh
+[I 11:53:56.437 NotebookApp] Saving file at /batchSweep.sh
+[I 11:54:10.214 NotebookApp] Saving file at /batchSweep.sh
+[I 11:54:24.188 NotebookApp] Saving file at /batchSweep.sh
+[I 11:54:30.926 NotebookApp] Saving file at /batchSweep.sh
+[I 11:54:35.045 NotebookApp] Saving file at /batchSweep.sh
+[I 11:54:39.846 NotebookApp] Saving file at /batchSweep.sh
+[W 12:01:16.717 NotebookApp] delete /slurm/slurm-35436894_0.out
+[W 12:01:16.727 NotebookApp] delete /slurm/slurm-35436894_11.out
+[W 12:01:16.734 NotebookApp] delete /slurm/slurm-35436894_12.out
+[W 12:01:16.740 NotebookApp] delete /slurm/slurm-35436894_13.out
+[W 12:01:16.747 NotebookApp] delete /slurm/slurm-35436894_14.out
+[W 12:01:16.754 NotebookApp] delete /slurm/slurm-35436894_16.out
+[W 12:01:16.760 NotebookApp] delete /slurm/slurm-35436894_17.out
+[W 12:01:16.766 NotebookApp] delete /slurm/slurm-35436894_10.out
+[W 12:01:16.773 NotebookApp] delete /slurm/slurm-35436894_1.out
+[W 12:01:16.778 NotebookApp] delete /slurm/slurm-35436894_18.out
+[W 12:01:16.784 NotebookApp] delete /slurm/slurm-35436894_19.out
+[W 12:01:16.789 NotebookApp] delete /slurm/slurm-35436894_5.out
+[W 12:01:16.795 NotebookApp] delete /slurm/slurm-35436894_9.out
+[W 12:01:16.800 NotebookApp] delete /slurm/slurm-35436894_4.out
+[W 12:01:16.806 NotebookApp] delete /slurm/slurm-35436894_8.out
+[W 12:01:16.811 NotebookApp] delete /slurm/slurm-35436894_15.out
+[W 12:01:16.816 NotebookApp] delete /slurm/slurm-35436894_20.out
+[W 12:01:16.822 NotebookApp] delete /slurm/slurm-35436894_6.out
+[W 12:01:16.830 NotebookApp] delete /slurm/slurm-35436894_2.out
+[W 12:01:16.836 NotebookApp] delete /slurm/slurm-35436894_3.out
+[W 12:01:16.843 NotebookApp] delete /slurm/slurm-35436894_7.out
+[I 12:01:25.620 NotebookApp] Saving file at /batchSweep.sh
+[I 12:01:38.106 NotebookApp] Saving file at /batchSweep.sh
+[I 12:01:43.289 NotebookApp] Saving file at /batchSweep.sh
+[I 12:02:10.680 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 12:02:44.733 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 12:03:16.513 NotebookApp] Saving file at /batchSweep.sh
+[I 12:03:26.017 NotebookApp] Saving file at /batchSweep.sh
+[I 12:03:35.808 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 12:03:48.770 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 12:03:55.818 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 12:04:01.385 NotebookApp] Saving file at /batchSweep.sh
+[I 12:04:04.473 NotebookApp] Saving file at /batchSweep.sh
+[I 12:04:07.746 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[W 12:09:18.673 NotebookApp] delete /slurm/slurm-35438554_0.out
+[W 12:09:18.678 NotebookApp] delete /slurm/slurm-35438554_10.out
+[W 12:09:18.682 NotebookApp] delete /slurm/slurm-35438554_11.out
+[W 12:09:18.685 NotebookApp] delete /slurm/slurm-35438554_13.out
+[W 12:09:18.688 NotebookApp] delete /slurm/slurm-35438554_14.out
+[W 12:09:18.693 NotebookApp] delete /slurm/slurm-35438554_1.out
+[W 12:09:18.696 NotebookApp] delete /slurm/slurm-35438554_15.out
+[W 12:09:18.700 NotebookApp] delete /slurm/slurm-35438554_19.out
+[W 12:09:18.705 NotebookApp] delete /slurm/slurm-35438554_6.out
+[W 12:09:18.709 NotebookApp] delete /slurm/slurm-35438554_2.out
+[W 12:09:18.715 NotebookApp] delete /slurm/slurm-35438554_12.out
+[W 12:09:18.719 NotebookApp] delete /slurm/slurm-35438554_9.out
+[W 12:09:18.724 NotebookApp] delete /slurm/slurm-35438554_4.out
+[W 12:09:18.729 NotebookApp] delete /slurm/slurm-35438554_8.out
+[W 12:09:18.734 NotebookApp] delete /slurm/slurm-35438554_3.out
+[W 12:09:18.738 NotebookApp] delete /slurm/slurm-35438554_18.out
+[W 12:09:18.743 NotebookApp] delete /slurm/slurm-35438554_17.out
+[W 12:09:18.746 NotebookApp] delete /slurm/slurm-35438554_16.out
+[W 12:09:18.750 NotebookApp] delete /slurm/slurm-35438554_7.out
+[W 12:09:18.753 NotebookApp] delete /slurm/slurm-35438554_5.out
+[W 12:09:18.757 NotebookApp] delete /slurm/slurm-35438554_20.out
+[I 12:09:26.306 NotebookApp] Saving file at /batchSweep.sh
+[I 12:09:34.467 NotebookApp] Saving file at /batchSweep.sh
+[I 12:09:47.890 NotebookApp] Saving file at /batchSweep.sh
+[I 12:09:52.770 NotebookApp] Saving file at /batchSweep.sh
+[I 12:10:07.958 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 12:10:40.818 NotebookApp] Saving file at /batchSweep.sh
+[I 12:10:54.122 NotebookApp] Saving file at /batchSweep.sh
+[I 12:11:04.054 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[W 12:13:50.909 NotebookApp] delete /slurm/slurm-35439336_0.out
+[W 12:13:50.914 NotebookApp] delete /slurm/slurm-35439336_10.out
+[W 12:13:50.917 NotebookApp] delete /slurm/slurm-35439336_1.out
+[W 12:13:50.920 NotebookApp] delete /slurm/slurm-35439336_3.out
+[W 12:13:50.924 NotebookApp] delete /slurm/slurm-35439336_4.out
+[W 12:13:50.927 NotebookApp] delete /slurm/slurm-35439336_6.out
+[W 12:13:50.930 NotebookApp] delete /slurm/slurm-35439336_8.out
+[W 12:13:50.933 NotebookApp] delete /slurm/slurm-35439336_11.out
+[W 12:13:50.937 NotebookApp] delete /slurm/slurm-35439336_7.out
+[W 12:13:50.940 NotebookApp] delete /slurm/slurm-35439336_9.out
+[W 12:13:50.943 NotebookApp] delete /slurm/slurm-35439336_2.out
+[W 12:13:50.947 NotebookApp] delete /slurm/slurm-35439336_5.out
+[W 12:16:35.570 NotebookApp] Notebook notebooks/optimize_SubspaceRealignment.ipynb is not trusted
+[W 12:16:35.586 NotebookApp] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20211006031337 (127.0.0.1) 4.09ms referer=http://localhost:30100/notebooks/notebooks/optimize_SubspaceRealignment.ipynb
+[I 12:16:35.888 NotebookApp] Kernel started: 4ea67ca3-bfee-4d7e-928f-517179781fc3
+[I 12:16:37.019 NotebookApp] Adapting to protocol v5.1 for kernel 4ea67ca3-bfee-4d7e-928f-517179781fc3
+[I 12:18:35.920 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 12:18:35.920 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[W 13:36:37.156 NotebookApp] 404 GET /favicon.ico (127.0.0.1) 2.96ms referer=http://localhost:30100/view/slurm/slurm-35439336_100.out
+[W 13:40:12.882 NotebookApp] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20211006031337 (127.0.0.1) 3.35ms referer=http://localhost:30100/notebooks/notebooks/optimize_vanillaHMM.ipynb
+[I 13:40:13.147 NotebookApp] Adapting to protocol v5.1 for kernel 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 13:42:13.176 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:42:19.560 NotebookApp] Kernel interrupted: 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 13:43:23.985 NotebookApp] Kernel interrupted: 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 13:44:13.165 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:44:33.567 NotebookApp] Kernel interrupted: 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 13:44:51.207 NotebookApp] Kernel interrupted: 79fe14bd-5162-4097-85c4-d58bf4a0b305
+[I 13:46:13.164 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:47:13.371 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 13:47:19.914 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 13:48:13.182 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:50:13.189 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:52:13.198 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:54:13.209 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:56:13.214 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 13:58:13.217 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:00:13.227 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:12:13.280 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:14:13.635 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:16:13.292 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:16:16.458 NotebookApp] Kernel interrupted: 79fe14bd-5162-4097-85c4-d58bf4a0b305
+ERROR:tornado.general:Uncaught exception, closing connection.
+Traceback (most recent call last):
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/cache.py", line 46, in wrapper
+    return getattr(self, name)
+AttributeError: 'MixedName' object has no attribute '_infer'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/__init__.py", line 555, in wrapper
+    return cache[key][0]
+KeyError: (139713883200200, 139713881222336)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/zmq/eventloop/zmqstream.py", line 414, in _run_callback
+    callback(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/tornado/stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/kernelbase.py", line 283, in dispatcher
+    return self.dispatch_shell(stream, msg)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/kernelbase.py", line 235, in dispatch_shell
+    handler(stream, idents, msg)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/kernelbase.py", line 434, in complete_request
+    matches = self.do_complete(code, cursor_pos)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/ipkernel.py", line 257, in do_complete
+    txt, matches = self.shell.complete('', line, line_cursor)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/interactiveshell.py", line 1974, in complete
+    return self.Completer.complete(text, line, cursor_pos)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/completer.py", line 1840, in complete
+    return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/completer.py", line 1913, in _complete
+    cursor_pos, cursor_line, full_text)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/completer.py", line 1297, in _jedi_matches
+    return filter(completion_filter, interpreter.completions())
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/__init__.py", line 179, in completions
+    completions = completion.completions()
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/completion.py", line 96, in completions
+    completion_names = self._get_context_completions()
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/completion.py", line 169, in _get_context_completions
+    completion_names += self._trailer_completions(dot.get_previous_leaf())
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/completion.py", line 204, in _trailer_completions
+    contexts = evaluate_call_of_leaf(evaluation_context, previous_leaf)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/helpers.py", line 53, in evaluate_call_of_leaf
+    return context.eval_node(leaf)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/context.py", line 37, in eval_node
+    return self.evaluator.eval_element(self, node)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 252, in eval_element
+    return self._eval_element_if_evaluated(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 264, in _eval_element_if_evaluated
+    return self._eval_element_cached(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/cache.py", line 41, in wrapper
+    rv = function(obj, *args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 268, in _eval_element_cached
+    return self._eval_element_not_cached(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/debug.py", line 81, in wrapper
+    return func(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 276, in _eval_element_not_cached
+    types = self.eval_atom(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 347, in eval_atom
+    search_global=True
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/_compatibility.py", line 213, in <lambda>
+    return lambda *args, **kwargs: self.func(obj, *args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/context.py", line 52, in py__getattribute__
+    self, name_or_str, name_context, position, search_global, is_goto)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 130, in find_types
+    return f.find(filters, attribute_lookup=not search_global)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/debug.py", line 81, in wrapper
+    return func(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/finder.py", line 64, in find
+    types = self._names_to_types(names, attribute_lookup)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/finder.py", line 147, in _names_to_types
+    types = unite(name.infer() for name in names)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/common.py", line 191, in unite
+    return set(typ for types in iterable for typ in types)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/common.py", line 191, in <genexpr>
+    return set(typ for types in iterable for typ in types)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/finder.py", line 147, in <genexpr>
+    types = unite(name.infer() for name in names)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/cache.py", line 48, in wrapper
+    result = func(self)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/mixed.py", line 86, in infer
+    return [create(self._evaluator, obj, parent_context=self.parent_context)]
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/__init__.py", line 558, in wrapper
+    result = func(evaluator, obj, parent_context, module, faked)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/mixed.py", line 179, in create
+    tree_node, path = find_syntax_node_name(evaluator, obj)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/mixed.py", line 121, in find_syntax_node_name
+    path = inspect.getsourcefile(python_object)
+  File "/share/software/user/open/python/3.6.1/lib/python3.6/inspect.py", line 654, in getsourcefile
+    filename = getfile(object)
+  File "/share/software/user/open/python/3.6.1/lib/python3.6/inspect.py", line 636, in getfile
+    'function, traceback, frame, or code object'.format(object))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/base.py", line 82, in __repr__
+    return str(self)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/base.py", line 61, in __str__
+    return self.__unicode__()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/frame.py", line 663, in __unicode__
+    line_width=width, show_dimensions=show_dimensions)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/frame.py", line 1968, in to_string
+    formatter.to_string()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 611, in to_string
+    strcols = self._to_str_columns()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 546, in _to_str_columns
+    fmt_values = self._format_col(i)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 724, in _format_col
+    space=self.col_space, decimal=self.decimal)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 892, in format_array
+    return fmt_obj.get_result()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 912, in get_result
+    fmt_values = self._format_strings()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 958, in _format_strings
+    fmt_values.append(u' {v}'.format(v=_format(v)))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 940, in _format
+    return u'{x}'.format(x=formatter(x))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 927, in <lambda>
+    (lambda x: pprint_thing(x, escape_chars=('\t', '\r', '\n'))))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 217, in pprint_thing
+    max_seq_items=max_seq_items)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 113, in _pprint_seq
+    next(s), _nest_lvl + 1, max_seq_items=max_seq_items, **kwds))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 217, in pprint_thing
+    max_seq_items=max_seq_items)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 107, in _pprint_seq
+    nitems = max_seq_items or get_option("max_seq_items") or len(seq)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 227, in __call__
+    return self.__func__(*args, **kwds)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 97, in _get_option
+    key = _get_single_key(pat, silent)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 79, in _get_single_key
+    keys = _select_options(pat)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 547, in _select_options
+    return [k for k in keys if re.search(pat, k, re.I)]
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 547, in <listcomp>
+    return [k for k in keys if re.search(pat, k, re.I)]
+  File "/share/software/user/open/python/3.6.1/lib/python3.6/re.py", line 182, in search
+    return _compile(pattern, flags).search(string)
+KeyboardInterrupt
+ERROR:tornado.general:Uncaught exception, closing connection.
+Traceback (most recent call last):
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/cache.py", line 46, in wrapper
+    return getattr(self, name)
+AttributeError: 'MixedName' object has no attribute '_infer'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/__init__.py", line 555, in wrapper
+    return cache[key][0]
+KeyError: (139713883200200, 139713881222336)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/zmq/eventloop/zmqstream.py", line 440, in _handle_events
+    self._handle_recv()
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/zmq/eventloop/zmqstream.py", line 472, in _handle_recv
+    self._run_callback(callback, msg)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/zmq/eventloop/zmqstream.py", line 414, in _run_callback
+    callback(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/tornado/stack_context.py", line 277, in null_wrapper
+    return fn(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/kernelbase.py", line 283, in dispatcher
+    return self.dispatch_shell(stream, msg)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/kernelbase.py", line 235, in dispatch_shell
+    handler(stream, idents, msg)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/kernelbase.py", line 434, in complete_request
+    matches = self.do_complete(code, cursor_pos)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/ipykernel/ipkernel.py", line 257, in do_complete
+    txt, matches = self.shell.complete('', line, line_cursor)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/interactiveshell.py", line 1974, in complete
+    return self.Completer.complete(text, line, cursor_pos)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/completer.py", line 1840, in complete
+    return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/completer.py", line 1913, in _complete
+    cursor_pos, cursor_line, full_text)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/IPython/core/completer.py", line 1297, in _jedi_matches
+    return filter(completion_filter, interpreter.completions())
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/__init__.py", line 179, in completions
+    completions = completion.completions()
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/completion.py", line 96, in completions
+    completion_names = self._get_context_completions()
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/completion.py", line 169, in _get_context_completions
+    completion_names += self._trailer_completions(dot.get_previous_leaf())
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/api/completion.py", line 204, in _trailer_completions
+    contexts = evaluate_call_of_leaf(evaluation_context, previous_leaf)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/helpers.py", line 53, in evaluate_call_of_leaf
+    return context.eval_node(leaf)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/context.py", line 37, in eval_node
+    return self.evaluator.eval_element(self, node)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 252, in eval_element
+    return self._eval_element_if_evaluated(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 264, in _eval_element_if_evaluated
+    return self._eval_element_cached(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/cache.py", line 41, in wrapper
+    rv = function(obj, *args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 268, in _eval_element_cached
+    return self._eval_element_not_cached(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/debug.py", line 81, in wrapper
+    return func(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 276, in _eval_element_not_cached
+    types = self.eval_atom(context, element)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 347, in eval_atom
+    search_global=True
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/_compatibility.py", line 213, in <lambda>
+    return lambda *args, **kwargs: self.func(obj, *args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/context.py", line 52, in py__getattribute__
+    self, name_or_str, name_context, position, search_global, is_goto)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/__init__.py", line 130, in find_types
+    return f.find(filters, attribute_lookup=not search_global)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/debug.py", line 81, in wrapper
+    return func(*args, **kwargs)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/finder.py", line 64, in find
+    types = self._names_to_types(names, attribute_lookup)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/finder.py", line 147, in _names_to_types
+    types = unite(name.infer() for name in names)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/common.py", line 191, in unite
+    return set(typ for types in iterable for typ in types)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/common.py", line 191, in <genexpr>
+    return set(typ for types in iterable for typ in types)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/finder.py", line 147, in <genexpr>
+    types = unite(name.infer() for name in names)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/cache.py", line 48, in wrapper
+    result = func(self)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/mixed.py", line 86, in infer
+    return [create(self._evaluator, obj, parent_context=self.parent_context)]
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/__init__.py", line 558, in wrapper
+    result = func(evaluator, obj, parent_context, module, faked)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/mixed.py", line 179, in create
+    tree_node, path = find_syntax_node_name(evaluator, obj)
+  File "/share/software/user/open/py-jupyter/1.0.0_py36/lib/python3.6/site-packages/jedi/evaluate/compiled/mixed.py", line 121, in find_syntax_node_name
+    path = inspect.getsourcefile(python_object)
+  File "/share/software/user/open/python/3.6.1/lib/python3.6/inspect.py", line 654, in getsourcefile
+    filename = getfile(object)
+  File "/share/software/user/open/python/3.6.1/lib/python3.6/inspect.py", line 636, in getfile
+    'function, traceback, frame, or code object'.format(object))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/base.py", line 82, in __repr__
+    return str(self)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/base.py", line 61, in __str__
+    return self.__unicode__()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/frame.py", line 663, in __unicode__
+    line_width=width, show_dimensions=show_dimensions)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/frame.py", line 1968, in to_string
+    formatter.to_string()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 611, in to_string
+    strcols = self._to_str_columns()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 546, in _to_str_columns
+    fmt_values = self._format_col(i)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 724, in _format_col
+    space=self.col_space, decimal=self.decimal)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 892, in format_array
+    return fmt_obj.get_result()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 912, in get_result
+    fmt_values = self._format_strings()
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 958, in _format_strings
+    fmt_values.append(u' {v}'.format(v=_format(v)))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 940, in _format
+    return u'{x}'.format(x=formatter(x))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/format.py", line 927, in <lambda>
+    (lambda x: pprint_thing(x, escape_chars=('\t', '\r', '\n'))))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 217, in pprint_thing
+    max_seq_items=max_seq_items)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 113, in _pprint_seq
+    next(s), _nest_lvl + 1, max_seq_items=max_seq_items, **kwds))
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 217, in pprint_thing
+    max_seq_items=max_seq_items)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/io/formats/printing.py", line 107, in _pprint_seq
+    nitems = max_seq_items or get_option("max_seq_items") or len(seq)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 227, in __call__
+    return self.__func__(*args, **kwds)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 97, in _get_option
+    key = _get_single_key(pat, silent)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 79, in _get_single_key
+    keys = _select_options(pat)
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 547, in _select_options
+    return [k for k in keys if re.search(pat, k, re.I)]
+  File "/share/software/user/open/py-pandas/0.23.0_py36/lib/python3.6/site-packages/pandas/core/config.py", line 547, in <listcomp>
+    return [k for k in keys if re.search(pat, k, re.I)]
+  File "/share/software/user/open/python/3.6.1/lib/python3.6/re.py", line 182, in search
+    return _compile(pattern, flags).search(string)
+KeyboardInterrupt
+[I 14:16:18.423 NotebookApp] KernelRestarter: restarting kernel (1/5)
+WARNING:root:kernel 79fe14bd-5162-4097-85c4-d58bf4a0b305 restarted
+[I 14:18:13.293 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:20:13.318 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:22:13.313 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:24:13.319 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:26:13.326 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:28:13.326 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:30:13.339 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:32:13.344 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:34:13.341 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:36:13.344 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:38:13.353 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:40:13.360 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:42:13.356 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:44:13.370 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:46:13.380 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:48:13.384 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:50:13.392 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:52:13.389 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:54:13.389 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:56:13.404 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 14:58:13.404 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:00:13.418 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:02:13.436 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:04:13.438 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:06:13.448 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:08:13.443 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:10:13.457 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:12:13.451 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:22:34.042 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 15:22:40.978 NotebookApp] Saving file at /batchSweep.sh
+[I 15:22:46.966 NotebookApp] Saving file at /batchSweep.sh
+[I 15:26:00.857 NotebookApp] Saving file at /batchSweep.sh
+[I 15:26:09.886 NotebookApp] Saving file at /batchSweep.sh
+[I 15:26:13.529 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:30:56.454 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 15:31:36.586 NotebookApp] Saving file at /batchSweep.sh
+[I 15:32:13.581 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:41:36.808 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 15:41:43.007 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 15:42:07.812 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 15:42:14.241 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:54:14.306 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 15:56:14.302 NotebookApp] Saving file at /notebooks/optimize_vanillaHMM.ipynb
+[I 16:04:37.764 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:04:37.765 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:08:37.772 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:08:37.773 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:08:58.677 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:08:58.678 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:10:37.762 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:10:37.763 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:12:37.788 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:12:37.788 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:14:37.792 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:14:37.793 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:15:56.969 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:15:56.969 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:17:10.463 NotebookApp] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20211006031337 (127.0.0.1) 4.22ms referer=http://localhost:30100/notebooks/notebooks/make_T5_optimization_dataset.ipynb
+[I 16:17:10.653 NotebookApp] Kernel started: 0b64647d-d66a-48e3-89f4-a764336662e3
+[I 16:17:11.697 NotebookApp] Adapting to protocol v5.1 for kernel 0b64647d-d66a-48e3-89f4-a764336662e3
+[I 16:18:37.810 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:18:37.811 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:20:37.829 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:20:37.830 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:22:19.295 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:22:19.296 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:22:37.837 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:22:37.837 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:24:37.840 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:24:37.841 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:25:04.031 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:25:04.031 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:26:15.966 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:26:15.966 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:26:37.850 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:26:37.851 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:28:37.859 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:28:37.859 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:30:37.870 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:30:37.870 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:32:37.908 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:32:37.909 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:35:41.149 NotebookApp] Kernel interrupted: 4ea67ca3-bfee-4d7e-928f-517179781fc3
+[I 16:36:37.908 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:36:37.909 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:39:59.205 NotebookApp] Creating new directory in 
+[I 16:40:29.238 NotebookApp] Creating new file in /sweep_scripts
+[I 16:41:30.377 NotebookApp] Saving file at /sweep_scripts/sweep_utils.py
+[I 16:43:42.213 NotebookApp] Copying notebooks/optimizeHMM.py to /notebooks
+[I 16:44:10.742 NotebookApp] Copying sweep_scripts/optimizeHMM.py to /sweep_scripts
+[I 16:45:01.896 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:46:37.939 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:46:37.939 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb
+[I 16:46:44.211 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:47:54.922 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:48:06.560 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:48:13.816 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:48:27.552 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:48:29.498 NotebookApp] Saving file at /sweep_scripts/sweep_utils.py
+[I 16:52:51.239 NotebookApp] Saving file at /sweep_scripts/sweep_utils.py
+[I 16:52:52.775 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 16:52:54.603 NotebookApp] Saving file at /sweep_scripts/optimizeSubspaceStabilizer.py
+[I 16:52:59.268 NotebookApp] Saving file at /notebooks/optimizeHMM.py
+[I 16:53:00.371 NotebookApp] Saving file at /notebooks/optimize_SubspaceRealignment.ipynb
+[W 16:53:00.371 NotebookApp] Saving untrusted notebook notebooks/optimize_SubspaceRealignment.ipynb

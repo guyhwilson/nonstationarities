@@ -1,8 +1,9 @@
 import numpy as np
-import glob
+import glob, scipy
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-import scipy
+from datetime import date
+
 
 import sys
 #sys.path.append('utils/MATLAB/')
@@ -14,9 +15,27 @@ import firingrate
 
 
 
-def get_Dataset(dtype):
-    ''''''
 
+def loadDataset(data_dir, participant):
+    '''Load dataset files. Inputs are:
+    
+        data_dir (str)    - path to data folder
+        participant (str) - participant ID
+        
+    We assume files are of the form:
+            data_dir/participant/[ID].YYYY.MM.DD.mat'''
+    
+    def _getDate(session_file):
+        
+        session_date = session_file.split(participant)[1].split('.mat')[0].split('.')[1:] 
+        d = date(*[int(x) for x in session_date])
+        return d
+        
+    files   = np.asarray(glob.glob(data_dir + participant +  '*'))
+    dates   = list(map(_getDate, files))
+    ordered = files[np.argsort(dates)]
+    return ordered
+    
 
 
 def get_Sessions(files, min_nblocks = 0, getClick = False, manually_remove = []):

@@ -5,7 +5,7 @@ from scipy.io import loadmat
 import os
 from copy import deepcopy
 from datetime import date
-
+import firingrate
 
 
 def daysBetween(date_a, date_b):
@@ -20,18 +20,20 @@ def daysBetween(date_a, date_b):
     return np.abs(days) 
 
 
-   
 class DataStruct(object):
     """
     Generates a simplified R struct from cursor data.
     """
-    def __init__(self, file, alignScreens = False):
+    def __init__(self, file, alignScreens = False, causal_filter = 0):
+        
+        assert isinstance(file, str), "<file> must be a string"
+        assert isinstance(alignScreens, bool), "<alignScreens> must be bool"
+        
         dat                = loadmat(file)['dataset'][0][0]
         self.date          = file.split('t5.')[1].split('.mat')[0]
 
         self.blockList            = dat[0][0]    # contains block labels 
         self.gameName             = dat[18]   # of same length as blocklist: contains string label of task for each block
-        self.TX_continuous        = dat[12]
         self.cursorPos_continuous = dat[6].astype('float')
         self.targetPos_continuous = dat[7].astype('float')
         self.decClick_continuous  = np.concatenate(dat[11])
@@ -43,7 +45,13 @@ class DataStruct(object):
         self.nspClocks            = dat[5]
         self.decVel               = dat[10]
         self.n_trials             = self.trialEpochs.shape[0]
-        self.n_channels           = self.TX_continuous.shape[1]  
+         
+        # now load in neural data and smooth if requested:
+        if causal_filter > 0:
+            self.TX_continuous = firingrate.gaussian_filter1d(dat[12].astype('float'), sigma = causal_filter, axis = 0, causal = True)
+        else:
+            self.TX_continuous = dat[12].astype('float')
+        self.n_channels = self.TX_continuous.shape[1] 
 
         TX         = list()
         blockNums  = list()
