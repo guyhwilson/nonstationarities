@@ -132,8 +132,8 @@ def get_StrongTransferPairs(pairs, min_R2, train_size, sigma = None, block_const
     scores          = list()
 
     for i, (A_file, B_file) in enumerate(pairs):
-        dayA      = DataStruct(A_file)
-        dayB      = DataStruct(B_file)
+        dayA      = DataStruct(A_file, causal_filter = sigma)
+        dayB      = DataStruct(B_file, causal_filter = sigma)
         
         Adate     = 't5.' + dayA.date
         Bdate     = 't5.' + dayB.date
@@ -144,14 +144,12 @@ def get_StrongTransferPairs(pairs, min_R2, train_size, sigma = None, block_const
         else:
             dayA_blocks, dayB_blocks = None, None
             
-        #print(dayA.date)
-        #print(dayA_blocks, dayB_blocks)
-        Atrain_x, Atest_x, Atrain_y, Atest_y = getTrainTest(dayA, train_size = train_size, task = task, blocks = dayA_blocks, sigma = sigma, shuffle = False, returnFlattened = True)
+        Atrain_x, Atest_x, Atrain_y, Atest_y = getTrainTest(dayA, train_size = train_size, task = task, blocks = dayA_blocks, shuffle = False, returnFlattened = True)
         Atrain_x, Atest_x                    = get_BlockwiseMeanSubtracted(Atrain_x, Atest_x, concatenate = True)
         Atrain_y                             = np.concatenate(Atrain_y)
         Atest_y                              = np.concatenate(Atest_y)
         
-        Btrain_x, Btest_x, Btrain_y, Btest_y = getTrainTest(dayB, train_size = train_size, task = task, blocks = dayB_blocks, sigma = sigma, shuffle = False, returnFlattened = True)
+        Btrain_x, Btest_x, Btrain_y, Btest_y = getTrainTest(dayB, train_size = train_size, task = task, blocks = dayB_blocks, shuffle = False, returnFlattened = True)
         Btrain_x, Btest_x                    = get_BlockwiseMeanSubtracted(Btrain_x, Btest_x, concatenate = True)
         Btrain_y                             = np.concatenate(Btrain_y)
         Btest_y                              = np.concatenate(Btest_y)
@@ -160,7 +158,7 @@ def get_StrongTransferPairs(pairs, min_R2, train_size, sigma = None, block_const
         score     = lm.score(Btest_x, Btest_y)
        # score     = scipy.stats.pearsonr(lm.predict(Btest_x).flatten(), Btest_y.flatten())[0]
 
-        if score > min_R2:
+        if score >= min_R2:
             thresh_sessions.append([A_file, B_file])
             scores.append(score)
 
@@ -223,8 +221,7 @@ def getNeuralCursorTarget(struct, sigma = None, causal_filter = True, task = Non
   
   
 
-def getTrainTest(struct, train_size = 0.67, sigma = None, causal_filter = True, task = None, blocks = None, shuffle = False, returnFlattened = False,
-                 returnCursor = False):
+def getTrainTest(struct, train_size = 0.67, sigma = None, causal_filter = True, task = None, blocks = None, shuffle = False, returnFlattened = False, returnCursor = False):
     '''
     Code for getting training and test data. Inputs are:
 

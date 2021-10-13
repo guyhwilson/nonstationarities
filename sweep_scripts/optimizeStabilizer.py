@@ -58,43 +58,26 @@ if __name__ == '__main__':
     np.random.seed(42)
 
     # split hyperparams list into chunks and select chunk that corresponds to this job ID
-    ss_args = sweep_utils.generateArgs(sweepOpts, baseOpts)
-    ss_args = np.array_split(hmm_args, args.n_jobs)[args.jobID]  # hack to fix remaining jobs
-
-
-    print('Number of jobs: ', len(ss_args))
+    sweep_args = sweep_utils.generateArgs(sweepOpts, baseOpts)
+    sweep_args = np.array_split(sweep_args, args.n_jobs)[args.jobID]  # hack to fix remaining jobs
+    
+    print('*****Stabilizer sweep*****')
+    print('Number of jobs: ', len(sweep_args))
     print('Number of CPUs: ', joblib.cpu_count())
     print('Running...')
 
-
     # if we have multiple CPUs, take advantage of them:
     if joblib.cpu_count() == 1:
-    #if True:
         scores = list()
-        for arg in ss_args:
+        for arg in sweep_args:
             scores.append(sweep_utils.test_Stabilizer(arg))
     else:
-        scores = Parallel(n_jobs=-1, verbose = 0)(delayed(sweep_utils.test_Stabilizer)(arg) for arg in ss_args)
+        scores = Parallel(n_jobs=-1, verbose = 0)(delayed(sweep_utils.test_Stabilizer)(arg) for arg in sweep_args)
 
-    # generate a pandas dataframe for easy tracking of parameters and scores
-    for ss_arg, score in zip(ss_args, scores):
-        ss_arg['score'] = score
-    scores_df = pd.DataFrame(ss_args)
-
-    np.save(SAVE_PATH, scores_df)
-
-
-
-
-
-
-
-
-
-
-
-
-
+    np.save(SAVE_PATH, scores)
+    
+    
+   
 
 
 

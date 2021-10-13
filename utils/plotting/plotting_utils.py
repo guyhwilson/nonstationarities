@@ -19,6 +19,13 @@ def figSize(x, y):
   matplotlib.rcParams['figure.figsize'] = [y, x]
 
 
+def setTickLabels(ax, labels, which):
+    if which == 'x':
+        ax.set_xticklabels(np.concatenate([[''],  labels]))
+    elif which == 'y':
+        ax.set_yticklabels(np.concatenate([[''],  labels]))
+    else:
+        raise ValueError
 
 
 def modifyBoxPlotAlpha(ax, alpha):

@@ -27,8 +27,6 @@ from hmm_utils import HMMRecalibration
 
 import sweep_utils
 
-    
-
 
 # %%%%%%%%%%%% Configurable parameters %%%%%%%%%%%%%%%%%%
 
@@ -71,9 +69,6 @@ for x in range(nStates):
     idx                            = np.setdiff1d(np.arange(nStates), x)
     baseOpts['stateTrans'][x, idx] = (1-stayProb)/(nStates-1)
     
-    
-    
-
 if __name__ == '__main__':
     np.random.seed(42)
     
