@@ -66,17 +66,26 @@ def makeScoreDict(decoder, test_x, test_y, arg, pair_data):
     return score_dict
 
 
-def formatJobOutput(f):
+def formatJobOutput(f, prune = None):
     raw = np.load(f, allow_pickle = True)
     df  = pd.DataFrame([x for x in raw])
     
+    if prune is not None:
+        df = get_subsetDF(df, prune)
+    
     return df
 
-def getSummaryDataFrame(files, fields = None):
+def getSummaryDataFrame(files, fields = None, prune = None):
     '''Format list of output files from test_XXX() calls in batchSweep.sh
-       Returns as a pandas dataframe. '''
+       Returns as a pandas dataframe. Inputs are:
+       
+           files (list of str)  - files to process 
+           fields (list of str) - rows to subselect
+           prune (dict)         - dictionary restricting rows of dataframes 
+                                  based on specified values; keys correspond to
+                                  column labels, values to desired column value'''
     
-    scores = [formatJobOutput(f) for f in files]
+    scores = [formatJobOutput(f, prune) for f in files]
     df     = pd.concat(scores)
     
     if 'days_apart' not in df.columns:
