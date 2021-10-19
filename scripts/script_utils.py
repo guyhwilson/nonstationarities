@@ -24,7 +24,7 @@ def loadCompressedSession(file):
     
     # cast as a list for edge case where matlab returns integer (single block): 
     if isinstance(dat['blockList'], int):
-        dat['blockList'] = list(dat['blockList'])
+        dat['blockList'] = [dat['blockList']]
     
     for block in dat['blockList']:
         blockMean                                = dat['TX'][dat['blockNums'] == block, :].mean(axis = 0)

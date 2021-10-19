@@ -16,8 +16,8 @@ import script_utils
 
 
 parser = argparse.ArgumentParser(description = 'Hmm-based VKF recalibration. Returns weights matrix for linear decoder.')
-parser.add_argument('file', type = str, help = 'Path to processed .mat file for training block(s)')
-parser.add_argument('--saveDir', type = str, default = './', help = 'Folder for saving updated decoder weights.')
+parser.add_argument('--file', default = 'E:\Session\Data\HMMrecal\session_compressed.mat', type = str, help = 'Path to processed .mat file for training block(s)')
+parser.add_argument('--saveDir', type = str, default = 'E:\Session\Data\HMMrecal/' , help = 'Folder for saving updated decoder weights.')
 parser.add_argument('--kappa', type = float, default = 2., help = 'Dispersion parameter for HMM observation model')
 parser.add_argument('--gridSize', type = int, default = 20, help = 'Number of rows/columns to divide screen up into')
 args  = parser.parse_args()
@@ -25,12 +25,12 @@ args  = parser.parse_args()
 
 
 def adjustKappa(dist):
-    coef = 1 / (1 + np.exp(-1 * (dist - 70) * 0.5))
+    coef = 1 / (1 + np.exp(-1 * (dist - 50) * 0.1))
     return coef 
 
 
 if __name__ == '__main__':
-    stayProb      = 0.9999
+    stayProb      = 0.999
     vmKappa       = args.kappa
     gridSize      = args.gridSize
     probThreshold = 'probWeighted'

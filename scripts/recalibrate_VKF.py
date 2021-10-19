@@ -10,8 +10,8 @@ from sklearn.linear_model import LinearRegression
 import script_utils
 
 parser = argparse.ArgumentParser(description = 'Supervised VKF recalibration. Returns weights matrix for linear decoder.')
-parser.add_argument('file', type = str, help = 'Path to processed .mat file for training block(s)')
-parser.add_argument('--saveDir', type = str, default = './', help = 'Folder for saving updated decoder weights.')
+parser.add_argument('--file', default = 'E:\Session\Data\HMMrecal\session_compressed.mat', type = str, help = 'Path to processed .mat file for training block(s)')
+parser.add_argument('--saveDir', type = str, default = 'E:\Session\Data\HMMrecal/' , help = 'Folder for saving updated decoder weights.')
 args  = parser.parse_args()
 
 

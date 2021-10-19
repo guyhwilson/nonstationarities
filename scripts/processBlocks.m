@@ -1,8 +1,7 @@
 
-function out = processBlocks(session, blocks, saveDir)
+function out = processBlocks(blocks)
 % Helper function for preprocessing block data before feeding into python scripts. Inputs are:
 % 
-%    session (str)      - session folder name (e.g. 't5.2021.05.17') 
 %    blocks (list)      - list of blocks given by integer ID
 %    save_dir (str)     - output .mat file save directory
 %
@@ -15,11 +14,16 @@ function out = processBlocks(session, blocks, saveDir)
     %session     = 't5.2021.05.17';
     %blocks      =  [1, 4];  % NOTE: assumes 0-indexing (i.e. there's a block 0)
     % ----------------------------------------------
+    session     = 'Session';
+    save_dir    = 'E:\Session\Data\HMMrecal';
+    session_dir = 'E:';
+    root_dir    = 'E:\Session\Software\nptlbraingaterig\';
+   % root_dir = 'C:\Users\ghwilson\Documents\projects\nptlbraingaterig\'
 
-    addpath(genpath('C:\Users\ghwilson\Documents\projects\nptlbraingaterig\code\nptlDataExtraction\'))
-    addpath(genpath('C:\Users\ghwilson\Documents\projects\nptlbraingaterig\code\utilities\'))
-    addpath(genpath('C:\Users\ghwilson\Documents\projects\nptlbraingaterig\code\lib\'))
-    addpath(genpath('C:\Users\ghwilson\Documents\projects\nptlbraingaterig\code\analysis\Frank\'))
+    addpath(genpath([root_dir, 'code\nptlDataExtraction\']));
+    addpath(genpath([root_dir, 'code\utilities\']));
+    addpath(genpath([root_dir, 'code\lib\']));
+    addpath(genpath([root_dir, 'code\analysis\Frank\']));
 
     %% Load FileLogger data and process using Frank/Eli's formatting
 
@@ -27,7 +31,7 @@ function out = processBlocks(session, blocks, saveDir)
     sess{1} = session;
     sess{2} = blocks;
 
-    dataset    = formatWest2DDataset(sess, saveDir, session_dir);
+    dataset    = formatWest2DDataset(sess, save_dir, session_dir);
     compressed = struct('blockList', [], 'blockNums', [], 'targetPos', [], 'cursorPos', [], 'TX', [], ...
                         'decVel', []);
     
