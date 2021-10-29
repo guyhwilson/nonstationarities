@@ -40,11 +40,6 @@ def get_T5_ClickTrainTest(dat, train_frac):
     return train_x, test_x, train_y, test_y
 
 
-#def get_T5_ClickHMM_Data
-    
-
-
-
 
 
 def get_WindowedFeatures(features, window, padding = 0):

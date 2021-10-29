@@ -184,7 +184,8 @@ def fitEncodingMatrix(cursorSig, neural, fitMean = True):
      '''
     n_chans = neural.shape[1]
     enc     = np.zeros((2, n_chans))
-    mask    = np.sum(cursorSig, axis = 1) > 0
+    cm_list = list()
+    mask    = np.linalg.norm(cursorSig, axis = 1) > 0
     
     for i in range(n_chans):
         
@@ -193,8 +194,9 @@ def fitEncodingMatrix(cursorSig, neural, fitMean = True):
         
         cm.fit(angles, neural[mask, i])
         enc[:, i] = np.asarray([np.cos(cm.theta), np.sin(cm.theta)]) * cm.alpha
-
-    return enc
+        cm_list.append(cm)
+        
+    return enc, cm_list
 
 
     

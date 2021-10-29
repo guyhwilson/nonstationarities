@@ -37,7 +37,7 @@ class DataStruct(object):
         self.cursorPos_continuous = dat[6].astype('float')
         self.targetPos_continuous = dat[7].astype('float')
         self.decClick_continuous  = np.concatenate(dat[11])
-        self.onTarget             = np.concatenate(dat[8])
+        self.onTarget_continuous  = np.concatenate(dat[8])
         self.TX_thresh            = dat[13]
         self.trialEpochs          = dat[15] - 1  # account for MATLAB's 1-indexing
         self.trialEpochs[:, 1]   -= 1            # account for MATLAB's inclusive indexing 
@@ -61,6 +61,7 @@ class DataStruct(object):
         targetSize, cursorSize = list(), list()
         cursorPos, targetPos   = list(), list()
         decClick               = list()
+        onTarget               = list()
         
         keep = list()
         for i in range(self.n_trials):
@@ -79,6 +80,7 @@ class DataStruct(object):
                 cursorPos.append(deepcopy(self.cursorPos_continuous[start:stop, :]))
                 targetPos.append(deepcopy(self.targetPos_continuous[start:stop, :]))
                 decClick.append(deepcopy(self.decClick_continuous[start:stop]))
+                onTarget.append(deepcopy(self.onTarget_continuous[start:stop]))
 
         self.TX           = TX
         self.targetSize   = np.asarray(targetSize, dtype = 'object')
@@ -86,6 +88,7 @@ class DataStruct(object):
         self.targetPos    = targetPos
         self.cursorPos    = cursorPos
         self.decClick     = np.asarray(decClick, dtype = 'object')
+        self.onTarget     = np.asarray(onTarget, dtype = 'object')
         self.blockNums    = np.asarray(blockNums, dtype = 'object')
         self.IsSuccessful = np.asarray(isSuccessful, dtype = 'object')
         self.trialType    = np.asarray(trialType, dtype = 'object')

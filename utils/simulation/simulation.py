@@ -1,10 +1,9 @@
 import numpy as np 
-from numba import jit
+from numba import jit, types
+import numba
 from scipy.linalg import solve_discrete_are
-
 import sys
-#sys.path.append('../utils/MATLAB/')
-#from simulation_matlab import simulateBCI_KF
+
 
 def getBCIFittsKF(alpha, beta, nDelaySteps, delT):
     '''Define the internal state estimator of the BCI user (which we simulate here with a Kalman filter). 
@@ -77,7 +76,41 @@ def getBCIFittsKF(alpha, beta, nDelaySteps, delT):
 
 
 @jit(nopython=True) 
-def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, neuralTuning, D, alpha, beta, nDelaySteps, delT, nStepsForSim):
+def getNeuralTuning(currControl, decode_params):
+    '''Simulate linear tuning to control vector signal.'''
+    
+    simAct  = decode_params['neuralTuning'][:,1:].dot(currControl) 
+    for j in range(len(simAct)):
+        simAct[j, 0] = simAct[j, 0] + (np.random.normal() * 0.3) +  decode_params['neuralTuning'][j, 0]
+    
+    return simAct
+
+
+@jit(nopython = True)
+def getDecodedControl(simAct, decode_params):
+    '''Decode control signal from neural signals.'''
+    
+    rawDecVec = np.dot(decode_params['D'][1:,:].T, simAct) 
+    for j in range(rawDecVec.shape[0]):
+        rawDecVec[j, 0] = rawDecVec[j, 0] + decode_params['D'][0, j]
+
+    return rawDecVec
+
+@jit(nopython = True)
+def applyWallBound(state_vector, bound = 0.5):
+    '''Stop cursor from shooting out to infinity by having walls'''
+    
+    for i in range(2):
+        state_vector[i, 0] = min(np.abs(state_vector[i, 0]), bound) * np.sign(state_vector[i, 0])
+    
+    return state_vector
+    
+    
+
+
+
+@jit(nopython=True) 
+def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, decode_params, params):
     ''' Simulate BCI Fitts task with dwell target logic. Inputs are: 
     
             neuralTuning (2D array) - channels x 3 array holding baseline FR, X-velocity tuning, and Y-velocity tuning
@@ -100,12 +133,24 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, neur
        [0.00000000e+00, 0.00000000e+00, 5.00624667e-01, 6.02977667e-01,
         8.33672667e-01, 8.34671333e-01, 8.68126333e-01, 9.07594000e-01,
         9.36572667e-01, 1.03224767e+00, 9.97908667e-01, 9.97908667e-01]]).T
+    
+    
+    
+    nDelaySteps  = int(params['nDelaySteps'])
+    delT         = params['delT']
+    nStepsForSim = int(params['nSimSteps'])
+    
+    
+    neuralTuning = decode_params['neuralTuning']
+    D            = decode_params['D']
+    alpha        = decode_params['alpha'][:, 0]
+    beta         = decode_params['beta'][:, 0]
 
 
     # This is the main simulation loop.
     # These are some task parameters.
     nHoldSteps = 50
-    holdCounter = 0
+    holdCounter  = 0
     trialCounter = 0
     maxSteps = 1000
     targRad = 0.075
@@ -132,28 +177,28 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, neur
         #first get the user's control vector
         xK = A_aug.dot(xK) + B_aug.dot(currControl) + L_kalman.dot(C_aug.dot(xC) - C_aug.dot(xK))
         
+        #xK = applyWallBound(xK, bound = 0.5)
+        
         posErr      = currTarg - xK[:2, :]
         targDist    = np.linalg.norm(posErr)
         distWeight  = np.interp(targDist, fTarg[:, 0], fTarg[:, 1]) 
-
-        tmp         = (1 / targDist) * distWeight
+        
+        if targDist > 1e-20:
+            tmp = (1 / targDist) * distWeight
+        else:
+            tmp = 0
         currControl = tmp * posErr
 
         #simulate neural activity tuned to this control vector
-        simAct  = neuralTuning[:,1:].dot(currControl) 
-        for j in range(len(simAct)):
-            simAct[j, 0] = simAct[j, 0] + (np.random.normal() * 0.3) + neuralTuning[j, 0]
+        simAct  = getNeuralTuning(currControl, decode_params)
 
         #decode the neural activity with the decoder matrix D
-        rawDecVec = np.dot(D[1:,:].T, simAct) 
-        for j in range(2):
-            rawDecVec[j, 0] = rawDecVec[j, 0] + D[0, j]
-            
-        #rawDecVec = rawDecVec.T
+        rawDecVec = getDecodedControl(simAct, decode_params)
+       
 
         #update the cursor state according to the smoothing dynamics
         xC = A_aug.dot(xC) + B_aug.dot(rawDecVec)
-        
+        #xC = applyWallBound(xC, bound = 0.5)
         #the rest below is target acquisition & trial time out logic
         newTarg = False
 
@@ -193,161 +238,43 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, neur
     return posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt
 
 
-def simulateFitts_NoNumba(neuralTuning, D, alpha, beta, nDelaySteps, delT, nStepsForSim):
-    ''' Simulate BCI Fitts task with dwell target logic. Inputs are: 
     
-            neuralTuning (2D array) - channels x 3 array holding baseline FR, X-velocity tuning, and Y-velocity tuning
-            D (2D array)            - (channnels x 1) x 2 array for cursor decoder
-            alpha (float)           - cursor decoder (time) smoothing
-            beta (float)            - cursor decoder gain
-            nDelaySteps (int)       - delay from visual feedback
-            delT (float)            - amount of time per step (ms)
-            nStepsForSim (int)      - timesteps to simulate
-            '''
-    
-    L_kalman, A_aug, B_aug, C_aug = getBCIFittsKF(alpha, beta, nDelaySteps, delT)[:4]
-    
-    '''
-    Here we define the fTarg function for the simulated user's control policy, which
-    is basically just a saturating nonlinearity (see the paper
-    'Principled BCI decoder design and parameter selection using a
-    feedback control model' for more details).'''
-    
-    
-    fTarg = np.array([[0.1373,    0.0000],
-                    [10.9670,   150.1874],
-                    [41.0618,   180.8933],
-                    [68.8483,  250.1018],
-                    [104.7274 , 250.4014],
-                    [150.9665 , 260.4379],
-                    [204.6272 , 272.2782],
-                    [263.8003 , 280.9718],
-                    [329.5381 , 309.6743],
-                    [399.8577 , 299.3726]])
-      
-    fTarg[:, 0] /= 400
-    fTarg[:, 1] /= 300
-
-
-    # This is the main simulation loop.
-    # These are some task parameters.
-    nHoldSteps = 50
-    holdCounter = 0
-    trialCounter = 0
-    maxSteps = 1000
-    targRad = 0.075
-
-    # Define matrices to hold the time series data.
-    posTraj    = np.zeros((nStepsForSim, 2))
-    posErr_est = np.zeros((nStepsForSim, 2))              # internal estimate of position error
-    neuralTraj = np.zeros((nStepsForSim, neuralTuning.shape[0]))
-    velTraj    = np.zeros((nStepsForSim, 2))
-    rawDecTraj = np.zeros((nStepsForSim, 2))
-    conTraj    = np.zeros((nStepsForSim, 2))
-    targTraj   = np.zeros((nStepsForSim, 2))
-
-    ttt        = list()
-    trialStart = list()
-
-    # Define kalman & cursor state vectors.
-    currControl = np.zeros((2, 1))
-    currTarg    = np.random.rand(2,1) - 0.5
-    xK          = np.zeros((A_aug.shape[0], 1))
-    xC          = np.zeros((A_aug.shape[0], 1))
-
-    for t in range(nStepsForSim):
-        #first get the user's control vector
-        xK = A_aug.dot(xK) + B_aug.dot(currControl) + L_kalman.dot(C_aug.dot(xC) - C_aug.dot(xK))
-        
-
-        posErr      = currTarg - xK[:2]
-        targDist    = np.linalg.norm(posErr)
-        distWeight  = np.interp(targDist, 
-                                np.concatenate([[0], fTarg[:,0], [100]]), 
-                                np.concatenate([[fTarg[0,1]], fTarg[:,1], [fTarg[-1,1]]])  ) 
-
-        #currControl  =  posErr / targDist # we're ignoring the velocity dampening term
-        currControl = distWeight * (posErr/targDist)
-
-
-        #simulate neural activity tuned to this control vector
-        simAct  = neuralTuning[:,1:].dot(currControl) + neuralTuning[:, 0][:, np.newaxis]
-        simAct += np.random.normal(size = simAct.shape) * 0.3
-
-        #decode the neural activity with the decoder matrix D
-        rawDecVec = simAct.T.dot(D[1:,:]) + D[0,:]
-        rawDecVec = rawDecVec.T
-
-        #update the cursor state according to the smoothing dynamics
-        xC = A_aug.dot(xC) + B_aug.dot(rawDecVec)
-        
-        #the rest below is target acquisition & trial time out logic
-        newTarg = False
-
-        #trial time out
-        trialCounter += 1
-        if trialCounter > maxSteps:
-            newTarg = True
-        
-        #target acquisition
-        trueDist = np.linalg.norm(currTarg - xC[:2])
-        if trueDist < targRad:
-            holdCounter += 1
-        else:
-            holdCounter = 0
-
-        if holdCounter > nHoldSteps:
-            newTarg = True
-
-        #new target
-        if newTarg:
-            ttt.append(trialCounter/100)
-            trialStart.append(t)
-
-            holdCounter  = 0
-            trialCounter = 0
-            currTarg     = np.random.rand(2,1) - 0.5
-
-        #finally, save this time step of data
-        posTraj[t,:]    = xC[:2].squeeze()
-        posErr_est[t,:] = posErr.squeeze()
-        velTraj[t,:]    = xC[2:4].squeeze()
-        rawDecTraj[t,:] = rawDecVec.squeeze()
-        conTraj[t,:]    = currControl.squeeze()
-        targTraj[t,:]   = currTarg.squeeze()
-        neuralTraj[t,:] = simAct.squeeze()
-    
-
-    return posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt
-
-    
-    
-def simulateBCIFitts(neuralTuning, D,alpha, beta, nDelaySteps, delT, nSimSteps, UseNumba = True, return_PosErr = False):
+def simulateBCIFitts(cfg):
     '''Define the internal state estimator of the BCI user (which we simulate here with a Kalman filter). 
-       Inputs are: 
+       Input <param> is a dictionary with key-value pairs:
+       
             neuralTuning (2D array) - channels x 3 array of means, x, and y-velocity encoding dimensions
             D (2D array)            - (channnels + 1) x 2 array for cursor decoder
             alpha (float)           - cursor decoder (time) smoothing
             beta (float)            - cursor decoder gain
             nDelaySteps (int)       - delay from visual feedback
             delT (float)            - amount of time per step (ms)
-            UseNumba (Bool)         - toggles numba for speedups; defaults to True
-            return_PosErr (Bool)    - if True, return distance to internal target estimate'''
+         '''
     
+    mats = getBCIFittsKF(cfg['alpha'], cfg['beta'], cfg['nDelaySteps'], cfg['delT'])
     
-    if UseNumba:
-        mats     = getBCIFittsKF(alpha, beta, nDelaySteps, delT)
-        posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt = simulateFitts_Numba(*mats, neuralTuning, D,alpha, beta, nDelaySteps, delT, nSimSteps)
-    else:
-        posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt = simulateFitts_NoNumba(neuralTuning, D, alpha, beta, nDelaySteps, delT, nSimSteps)
-        
+    params = numba.typed.Dict.empty(key_type=types.unicode_type, value_type=types.float64)
     
-    if return_PosErr:
-        return posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt
-    else:
-        return posTraj, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt
+    params['delT']        = float(cfg['delT'])
+    params['nSimSteps']   = float(cfg['nSimSteps'])
+    params['nDelaySteps'] = float(cfg['nDelaySteps'])
     
+    decode_params = numba.typed.Dict.empty(key_type=types.unicode_type, value_type=types.float64[:, :])
+    
+    decode_params['neuralTuning'] = cfg['neuralTuning']
+    decode_params['D']            = cfg['D']
+    decode_params['alpha']        = np.asarray([cfg['alpha']], dtype = np.float64)[:, None]
+    decode_params['beta']         = np.asarray([cfg['beta']], dtype = np.float64)[:, None]
 
+    out   = simulateFitts_Numba(*mats, decode_params, params)
+    keys  = ['posTraj', 'posErr_hat', 'velTraj', 'rawDecTraj', 'conTraj', 
+            'targTraj', 'neuralTraj', 'trialStart', 'ttt']
+    
+    results = dict(zip(keys, out))
+    
+    return results
+    
+  
     
 
 def get_ClickMagnitude(distance, prev):

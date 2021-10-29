@@ -1,5 +1,6 @@
 import numpy as np
 import scipy, numba
+import scipy.special
 from numba import jit
 import time 
 

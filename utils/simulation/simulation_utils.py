@@ -1,5 +1,6 @@
 import numpy as np
 from simulation import simulateBCIFitts
+import copy 
 
 
 def generateUnits(n_units, SNR = 1):
@@ -38,6 +39,11 @@ def simulateUnitActivity(tuning, noise, nSteps):
     return calNeural, calVelocity
 
 
+def sampleSNR():
+    a, b, loc, scale = 4.904613603871817, 1358376.9875482046, 0.3669615703933665, 372538.74919432227
+    sample_SNR       = (np.random.beta(a, b) * scale/2.5) 
+    
+    return sample_SNR
 
 
 def orthogonalizeAgainst(v2, v1):
@@ -51,7 +57,7 @@ def orthogonalizeAgainst(v2, v1):
 
 
 
-def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0, renormalize = True):
+def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0, renormalize = None):
     ''' Simulate tuning shift for units. Inputs are:
     
         tuning (2D np array) - n_units x 3 array of tuning data
@@ -63,90 +69,106 @@ def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0, r
         
     ''' 
     
-    newTuning             = np.copy(tuning)
+    newTuning = np.copy(tuning)
+    oldnorm   = np.linalg.norm(tuning[:, 1:], axis = 0)
+    
+    # scale PD vectors to be unit norm 
+    if renormalize is None:  
+        renormalize = oldnorm
+    newTuning[:, 1:]/= oldnorm     
+    
+    # generate perturbation vectors for means and PDs
     newPD_component       = np.random.normal(loc = 0, scale = PD_noisevar**0.5, size = (tuning.shape[0], 2))
     newTuning[:, 0]      += np.random.normal(loc = 0, scale = mean_shift,     size = tuning.shape[0])
+   
+    newPD_component, _    = np.linalg.qr(newPD_component, 'reduced')
+    newPD_component[:, 0] = orthogonalizeAgainst(newPD_component[:, 0], tuning[:, 1]) 
+    newPD_component[:, 1] = orthogonalizeAgainst(newPD_component[:, 1], tuning[:, 2]) 
     
-    if renormalize:  # adjust so that encoding norm same as earlier 
-        
-        tuningNorm        = np.mean(np.linalg.norm(tuning[:, 1:], axis = 0))  # will rescale to this norm
-        newTuning[:, 1:] /= tuningNorm                                        # adjust to be unit vector for now 
-        
-        newPD_component, _    = np.linalg.qr(newPD_component, 'reduced')
-        newPD_component[:, 0] = orthogonalizeAgainst(newPD_component[:, 0], tuning[:, 1]) 
-        newPD_component[:, 1] = orthogonalizeAgainst(newPD_component[:, 1], tuning[:, 2]) 
-        newTuning[:, 1:]      = (newTuning[:,1:] * PD_shrinkage) + (newPD_component *np.sqrt(1 - PD_shrinkage**2))  # unit norm vectors
-        
-        newTuning[:, 1:]     *= tuningNorm  # now scale up/down to match original data 
-        
-    else:  # use simpler approach: new = shrinkage * old + noise 
-        newTuning[:,1:] = (tuning[:,1:] * PD_shrinkage) + newPD_component 
+    # combine (1 - alpha^2) of random orthogonal vector to get alpha correlation between old/new tuning subspaces 
+    newTuning[:, 1:]      = (newTuning[:,1:] * PD_shrinkage) + (newPD_component *np.sqrt(1 - PD_shrinkage**2)) 
+    
+    # rescale subspace norm 
+    newTuning[:, 1:]     *= renormalize 
     
     return newTuning
 
 
 
-def generateTargetGrid(gridSize, x_bounds = [-0.5, 0.5], y_bounds = [-0.5, 0.5]):
-    '''
-    Generate target grid for simulator.
-    '''
+def gainSweep(cfg, possibleGain, verbose = False):
+    '''Sweep through gain values to use.'''
     
-    X_loc,Y_loc = np.meshgrid(np.linspace(x_bounds[0], x_bounds[1], gridSize), np.linspace(y_bounds[0], y_bounds[1], gridSize))
-    targLocs    = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
-    
-    return targLocs
+    sweep_cfg = copy.deepcopy(cfg)
+    meanTTT   = np.zeros((len(possibleGain),))
 
-def generateTransitionMatrix(gridSize, stayProb):
-    '''
-    Generate transition probability matrix for simulator targets.
-    '''
-    nStates     = gridSize**2
-    stateTrans  = np.eye(nStates)*stayProb # Define the state transition matrix
-
-    for x in range(nStates):
-        idx                = np.setdiff1d(np.arange(nStates), x)
-        stateTrans[x, idx] = (1-stayProb)/(nStates-1)
-
-    pStateStart = np.zeros((nStates,1)) + 1/nStates
-    
-    return stateTrans, pStateStart
-
-'''
-def getDistortionMatrices_parallel(tuning, D, alpha, beta, nDelaySteps, delT, nSimSteps):
-    Code for parallelizing HMM sweeps. Inputs are:
-    
-        inflection, exp (floats) - parameters for adjusting kappa weighting
-        vmKappa (float)          - base kappa value
-        probThresh (float)       - subselect high probability time points; between 0 and 1 
-        decoder (sklearn)        - sklearn LinearRegression() object 
-        neural (2D array)        - time x channels of neural activity
-        stateTrans (2D array)    - square transition matrix for markov states
-        targLocs (2D array)      - k x 2 array of corresponding target positions for each state
-        B_cursorPos (2D array)   - time x 2 array of cursor positions
-        pStateStart (1D array)   - starting probabilities for each state
-    
+    for g in range(len(possibleGain)):
+        if verbose:
+            print(str(g) + ' / ' + str(len(possibleGain)))
+        sweep_cfg['beta'] = possibleGain[g]
+        results           = simulateBCIFitts(sweep_cfg)
+        meanTTT[g]        = np.mean(results['ttt'])
+        
+    minIdx = np.argmin(meanTTT)
+       
+    return possibleGain[minIdx]
 
 
-    posTraj, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt = simulateBCIFitts(tuning, D, alpha, beta, nDelaySteps, delT, nSimSteps)    
-    
-    PosErr             = targTraj - posTraj
-    D_new              = np.linalg.lstsq(np.hstack([np.ones((neuralTraj.shape[0],1)), neuralTraj]), PosErr, rcond = -1)[0]
-    decVec             = np.hstack([np.ones((neuralTraj.shape[0],1)), neuralTraj]).dot(D_new)
+def normalizeDecoderGain(D, decVec, posErr, thresh):
+    targDist = np.linalg.norm(posErr, axis = 1)
+    targDir  = posErr / targDist[:, np.newaxis]
 
-    TargDist     = np.linalg.norm(PosErr, axis = 1)
-    TargDir      = PosErr / TargDist[:, np.newaxis]
-    farIdx       = np.where(TargDist > 0.4)[0]
-    projVec      = np.sum(np.multiply(decVec[farIdx, :], TargDir[farIdx, :]), axis = 1)
-    D_new       /= np.mean(projVec) 
+    farIdx  = np.where(targDist > thresh)[0]
+
+    projVec  = np.sum(np.multiply(decVec[farIdx, :], targDir[farIdx, :]), axis = 1)
+    D       /= np.mean(projVec)
     
-    ttt = simulateBCIFitts(tuning, D_new, alpha, beta, nDelaySteps, delT, nSimSteps)[-1]
-   
-    dec  = D_new[1:, :]
-    enc  = tuning[:, 1:]
-    dec /= np.linalg.norm(enc, axis = 0)**2
+    return D
+
+
+
+def simulate_OpenLoopRecalibration(cfg, nSteps = 10000):
     
-   # enc /= np.linalg.norm(enc, axis = 0)
+    neural_OL, posErr_OL = simulation_utils.simulateUnitActivity(cfg['neuralTuning'], noise = 0.3, nSteps= nSteps)
+    lr                   = LinearRegression(fit_intercept = True).fit(neural_OL, posErr_OL)
+    D_OL                 = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
+    decVec_OL            = np.hstack([np.ones((neural_OL.shape[0], 1)), neural_OL]).dot(D_OL)
+    D_OL                 = simulation_utils.normalizeDecoderGain(D_OL, decVec_OL, posErr_OL, thresh = 0.4)
     
-    distort = dec.T.dot(enc)
+    return D_OL
+
+
+def simulate_ClosedLoopRecalibration(cfg):
     
-    return distort, ttt '''
+    calib_block  = simulateBCIFitts(cfg) 
+    posErr       = calib_block['targTraj'] - calib_block['posTraj']
+    neural       = calib_block['neuralTraj']
+    
+    lr           = LinearRegression(fit_intercept = True).fit(neural, posErr)
+    D_CL         = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
+    decVec_CL    = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_CL)
+    D_CL         = simulation_utils.normalizeDecoderGain(D_CL, decVec_CL, posErr, thresh = 0.4)
+
+    return D_CL
+
+def simulate_HMMRecalibration(cfg, hmm):
+    
+    calib_block             = simulateBCIFitts(cfg) 
+    targStates, pTargState  = hmm.viterbi_search(calib_block['rawDecTraj'], calib_block['posTraj'])
+
+    inferredTargLoc  = targLocs[targStates.astype('int').flatten(),:]
+    inferredPosErr   = inferredTargLoc - calib_block['posTraj']
+    neural           = calib_block['neuralTraj']
+
+    lr             = LinearRegression(fit_intercept = True).fit(neural, inferredPosErr)
+    D_HMM          = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
+    decVec_HMM     = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_HMM)
+    D_HMM          = simulation_utils.normalizeDecoderGain(D_HMM, decVec_HMM, inferredPosErr, thresh = 0.4)
+    
+    return D_HMM
+
+
+def simulate_StabilizerRecalibration(cfg, stabilizer):
+    raise NotImplementedError
+
+
+    
