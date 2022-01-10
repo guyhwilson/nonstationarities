@@ -98,11 +98,11 @@ def getSummaryDataFrame(files, fields = None, prune = None):
 def get_subsetDF(df, query_dict):
     '''Subselect pd dataframe based on arbitrary column values.'''
     
-    df = copy.deepcopy(df)
+    df_copy = copy.deepcopy(df)
     for key, value in query_dict.items():
-        df = df.loc[(df[key] == value)]
+        df_copy = df_copy.loc[(df_copy[key] == value)]
     
-    return df
+    return df_copy
 
 
 def makeStripPlot(df, opt_dict, sweep_dict, var):
@@ -115,7 +115,7 @@ def makeStripPlot(df, opt_dict, sweep_dict, var):
     sns_arr          = get_subsetDF(df, opt_copy)
     palette          = ['k'] * len(sweep_dict[var])
     palette[opt_idx] = 'r'
-
+    
     sns.stripplot(data = sns_arr, x = var, y = 'R2_score', hue = var, 
                   palette = palette, orient = 'v', alpha = 0.6)
     plt.legend([], [], frameon = False)
@@ -253,5 +253,7 @@ def test_HMM_Stabilizer(arg):
     score_dict  = makeScoreDict(new_decoder, B_test_latent, test_targvec, arg, pair_data)
     
     return score_dict
+
+
 
 

@@ -4,8 +4,7 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 
 import sys
-#sys.path.append('utils/MATLAB/')
-sys.path.append('utils/preprocessing/')
+sys.path.append('../utils/preprocessing/')
 from preprocess import DataStruct, daysBetween
 
 

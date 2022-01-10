@@ -10,7 +10,6 @@ from recalibration_utils import *
 from session_utils import *
 from hmm_utils import *
 from hmm import *
-from preprocess import DataStruct, daysBetween
 
 
 def get_DiscreteTargetGrid(struct, gridSize, task = None):

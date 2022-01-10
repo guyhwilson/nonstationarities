@@ -218,10 +218,117 @@ def getNeuralCursorTarget(struct, sigma = None, causal_filter = True, task = Non
     assert len(neural) == len(cursorPos), "Mismatch between number of trials for neural and cursor feature"
 
     return neural, cursorPos, targPos
+
+
+
+def getFields(struct, fields, task = None, blocks = None):
+    '''
+    Code for getting training and test data. Inputs are:
+
+      struct (DataStruct)      - session to train on
+      task (str)               - task type to train and test on; defaults to all data   
+      blocks (list of int)     - blocks to pull data from; default to all
+
+    Returns dictionary with key strings corresponding to entries of <fields>:
+    
+        fields[i] (str) : (list of lists) - entry [i][j] is block i, trial j 
+    '''
+
+    if task == None:
+        valid      = np.copy(struct.blockList)
+    else:
+        valid      = struct.blockList[np.where(struct.gameName == task)[0]]
+        
+    if blocks is not None:
+        valid      = np.intersect1d(valid, blocks)
+        
+    assert len(valid) > 0, "No blocks selected!"
+    
+    results_dict = dict()
+    for field in fields:
+        results_dict[field] = list()
+    
+    for block in valid:
+        trls        = np.where(struct.blockNums == block)[0]
+        
+        blocks_dict = dict()
+        for field in fields:
+            blocks_dict[field + '_block'] = list()
+        
+        for trl in trls:
+            for field in fields:
+                attr     = getattr(struct, field)
+                attr_trl = attr[trl]
+                
+                if field == 'TX':
+                    attr_trl = attr_trl.astype(float)
+                
+                if len(attr_trl.shape) == 1:
+                    attr_trl = attr_trl[:, None]
+                
+                blocks_dict[field + '_block'].append(attr_trl)
+        
+        for field in fields:
+            results_dict[field].append(blocks_dict[field + '_block'])
+
+    return results_dict
+
+
+def getTrainTest(struct, fields, train_size = 0.67, task = None, blocks = None, shuffle = False, returnFlattened = False):
+    '''
+    Code for getting training and test data. Inputs are:
+
+      struct (DataStruct)      - session to train on
+      train_size (float)       - fraction of blocks to use on training 
+      sigma (float)            - variance of gaussian filter to smooth neural data; default no smoothing
+      task (str)               - task type to train and test on; defaults to all data   
+      blocks (list of int)     - blocks to pull data from; default to all
+      shuffle (bool)           - whether or not to shuffle blocks before splitting into train/test
+      returnFlattened (bool)   - if True, concatenate returned lists into 2D arrays
+      
+    Returns:
+
+    train_x, test_x (list of 2D arrays) - entries are time x channels arrays of neural data 
+    train_y, test_y (list of 2D arrays) - entries are time x 2 arrays of cursor position error data
+    train_c, test_c (list of 2D arrays) - entries are time x 2 arrays of cursor position data (optional)
+
+    if returnFlattened = True, then the above are concatenated in the time/samples dimension.
+    '''
+    
+
+    results   = getFields(struct, fields, task = task, blocks = blocks)
+
+    n_blocks                   = len(results[list(results.keys())[0]])
+    train_blocks, test_blocks  = train_test_split(np.arange(n_blocks), train_size = train_size, shuffle = shuffle)
+    
+    # generate cursor error signal for regressing FRs against:
+    traintest_dict = dict()
+    for field in fields:
+        traintest_dict['train_' + field] = list()
+        traintest_dict['test_' + field] = list()
+    
+
+    # sort training data into output lists:
+    for i in train_blocks:
+        for field in fields:
+            if returnFlattened:
+                traintest_dict['train_' + field].append(np.vstack(results[field][i]))
+            else:
+                traintest_dict['train_' + field].append(results[field][i])
+            
+    # same code - maybe not as elegant but more readable for me at least
+    for i in test_blocks:
+        for field in fields:
+            if returnFlattened:
+                traintest_dict['test_' + field].append(np.vstack(results[field][i]))
+            else:
+                traintest_dict['test_' + field].append(results[field][i])
+        
+    return traintest_dict
   
   
 
-def getTrainTest(struct, train_size = 0.67, sigma = None, causal_filter = True, task = None, blocks = None, shuffle = False, returnFlattened = False, returnCursor = False):
+def getTrainTest_deprecated(struct, train_size = 0.67, sigma = None, causal_filter = True, task = None, blocks = None, shuffle = False, returnFlattened = False, returnCursor = False):
     '''
     Code for getting training and test data. Inputs are:
 
