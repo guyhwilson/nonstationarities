@@ -182,8 +182,9 @@ def fitEncodingMatrix(cursorSig, neural, fitMean = True):
           fitMean (bool)       - whether or not to model baseline; set to False
                                  if using already centered data
      '''
+    
     n_chans = neural.shape[1]
-    enc     = np.zeros((2, n_chans))
+    enc     = np.zeros((3, n_chans))
     cm_list = list()
     mask    = np.linalg.norm(cursorSig, axis = 1) > 0
     
@@ -193,7 +194,8 @@ def fitEncodingMatrix(cursorSig, neural, fitMean = True):
         cm     = CosineTuningModel(fitMean = fitMean)
         
         cm.fit(angles, neural[mask, i])
-        enc[:, i] = np.asarray([np.cos(cm.theta), np.sin(cm.theta)]) * cm.alpha
+        enc[0, i]  = cm.r_0
+        enc[1:, i] = np.asarray([np.cos(cm.theta), np.sin(cm.theta)]) * cm.alpha
         cm_list.append(cm)
         
     return enc, cm_list

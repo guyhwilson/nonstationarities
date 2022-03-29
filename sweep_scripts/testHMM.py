@@ -34,9 +34,9 @@ import sweep_utils
 gridSize     = 20     # already got specified when making the datasets (possible coordinate diffs across sessions)
 stayProb     = 0.999
 probWeighted = 'probWeighted'
-kappa        = 2.0
-inflection   = 50.0
-exp          = 0.1
+kappa        = 2
+inflection   = 70
+exp          = 0.5
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -49,7 +49,7 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/gwilson/nonstationarities/' + args.participant + '/test/'
+DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/test/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
 files       = glob.glob(DATA_DIR + '*')
 
@@ -92,6 +92,7 @@ if __name__ == '__main__':
             scores.append(sweep_utils.test_HMM(arg))
     else:
         scores = Parallel(n_jobs=-1, verbose = 0)(delayed(sweep_utils.test_HMM)(arg) for arg in sweep_args)
+    print('Done.')
     
     np.save(SAVE_PATH, scores)
 

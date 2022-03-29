@@ -56,7 +56,7 @@ class HMMRecalibration(object):
            
                 rawDecodeVec (2D array)   - time x 2 array containing decoder outputs at each timepoint
                 cursorPos (2D array)      - time x 2 array of cursor positions  
-                clickState (float)        - binary indicator of whether or not user clicked'''
+                clickState (1D array)     - binary indicator of whether or not user clicked'''
         
          # 1. compute distance from the cursor to each target, and expected angle for that target
         tDists, expectedAngle, observedAngle = self._compute_dists_and_angles(rawDecodeVec, cursorPos)
@@ -71,7 +71,7 @@ class HMMRecalibration(object):
                 raise ValueError('HMM doesnt have click observation model.')
             else:
                 probClick    = self.getClickProb(tDists)
-                obsProbLog  += np.log(clickState * probClick + ((1 - clickState) * (1 - probClick)))
+                obsProbLog  += np.log(clickState[:, None] * probClick + ((1 - clickState)[:, None] * (1 - probClick)))
         
         return obsProbLog
 
@@ -156,11 +156,9 @@ class HMMRecalibration(object):
         '''Code for recalibrating velocity decoder on session data using HMM-inferred target locations. Inputs are:
 
             decoder (Sklearn-like object) - decoder to use
-            neural (list)           - entries are time x n_channels arrays of neural activity 
+            neural (list)                 - entries are time x n_channels arrays of neural activity 
             cursorPos (list)              - entries are time x 2 arrays of cursor positions
-            probThreshold (float or str) - threshold for subselecting high certainty regions (only where best guess > probThreshold);
-                                           can also use mode "probWeighted" to weight by square of HMM's most likely state probability;
-                                           defaults to no weighting'''
+            probThreshold (float or str) - threshold for subselecting high certainty regions (only where best guess > probThreshold); can also use mode "probWeighted" to weight by square of HMM's most likely state probability. Defaults to no weighting'''
 
         assert isinstance(probThreshold, float) or probThreshold == 'probWeighted', "Invalid probThreshold value. Check input."
 
@@ -193,7 +191,7 @@ class HMMRecalibration(object):
 
         # use all timepoints in weighted least squares, weighting is square of maxProb 
         elif probThreshold == 'probWeighted':
-            decoder.fit(neural_flattened - neural_flattened.mean(axis = 0), inferredPosErr, maxProb**2)
+            decoder.fit(neural_flattened, inferredPosErr, maxProb**2)
                 
         else:
             raise ValueError('<probThreshold> argument not recognized.')

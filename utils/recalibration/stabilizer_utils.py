@@ -3,7 +3,7 @@ import sklearn
 from sklearn.model_selection import cross_val_score
 from sklearn.decomposition import FactorAnalysis, PCA
 from scipy.linalg import orthogonal_procrustes
-
+import copy
 
 
 def get_TrialStartActivity(neural, trialStarts, wait_for, n_bins):
@@ -209,8 +209,14 @@ class Stabilizer(object):
           model_type (str)      - 'PCA' or 'FactorAnalysis'
           n_components (int)    - latent space dimensionality
         '''
+        
         self.model_type   = model_type
         self.n_components = n_components
+        self.ref_model    = None
+        self.ref_coefs    = None
+        self.new_model    = None
+        self.new_coefs    = None
+        
 
     def fit_ref(self, datas, conditionAveraged = False, conditions = None):
         '''Fit dimensionality reduction model to reference day data. Inputs are:
@@ -234,7 +240,8 @@ class Stabilizer(object):
         return self
 
 
-    def fit_new(self, datas, B, thresh, conditionAveraged = False, conditions = None):
+    def fit_new(self, datas, B, thresh, conditionAveraged = False, 
+                conditions = None, daisy_chain = False):
         '''Fit dimensionality reduction model to new day data as well as latent space mapping 
            to original day's subspace. Inputs are:
 
@@ -253,12 +260,27 @@ class Stabilizer(object):
         else:
             model, ll = fit_TrialConcatenatedModel(self.model_type, {'n_components' : self.n_components}, datas)
 
-        self.new_model  = model
-        self.new_coefs  = model.components_.T
-        self.good_chans = identifyGoodChannels(self.ref_coefs, self.new_coefs, B, thresh)
-        self.R, _       = orthogonal_procrustes(self.new_coefs[self.good_chans, :], self.ref_coefs[self.good_chans, :])
+        if daisy_chain and self.new_model is not None:
+            self.ref_model = copy.copy(self.new_model)
+            self.ref_coefs = copy.copy(self.new_coefs)
+            self.new_model  = model
+            self.new_coefs  = model.components_.T
+            self.good_chans = identifyGoodChannels(self.ref_coefs, self.new_coefs, B, thresh)
+            R, _            = orthogonal_procrustes(self.new_coefs[self.good_chans, :], self.ref_coefs[self.good_chans, :])
+            self.R          = R.dot(self.R)
+
+        else:
+            self.new_model  = model
+            self.new_coefs  = model.components_.T
+            self.good_chans = identifyGoodChannels(self.ref_coefs, self.new_coefs, B, thresh)
+            self.R, _       = orthogonal_procrustes(self.new_coefs[self.good_chans, :], self.ref_coefs[self.good_chans, :])
+            
         self.B          = B
         self.thresh     = thresh
+        
+        return self
+    
+    
 
 
     def transform(self, data): 
@@ -269,6 +291,32 @@ class Stabilizer(object):
 
         newdata_latent = self.new_model.transform(data).dot(self.R)
         return newdata_latent
+    
+    
+    def getNeuralToLatentMap(self, model):
+        '''Get transformation matrix that maps observeds into latent estimates. Inputs are:
+
+               model (sklearn object)  - trained factor analysis/PCA model
+
+           Returns:
+               transform (2D array) - observed x latents matrix; apply to mean-centered data
+        '''
+    
+        if self.model_type == 'FactorAnalysis':
+            Ih    = np.eye(len(model.components_))
+            Wpsi  = model.components_ / model.noise_variance_
+            cov_z = np.linalg.inv(Ih + np.dot(Wpsi, model.components_.T))
+            transform = np.dot(Wpsi.T, cov_z)
+
+        elif self.model_type == 'PCA':
+            transform = model.components_.T
+            
+        else:
+            raise ValueError('Model type not recognized')
+
+        return transform
+    
+    
     
     
 

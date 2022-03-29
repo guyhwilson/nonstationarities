@@ -14,16 +14,145 @@ from recalibration_utils import get_BlockwiseMeanSubtracted
 import firingrate
 
 
+def getBlockConstraints(FILE_DIR):
+
+    noheadstill_dict             = dict()
+    
+    # old
+    noheadstill_dict['t5.2016.09.26'] = [7, 12, 19, 21, 24, 29]
+    noheadstill_dict['t5.2016.09.28'] = [4, 6, 7, 8, 9, 10, 16, 18, 19, 22, 24, 25, 29, 35]
+    noheadstill_dict['t5.2016.10.03'] = [10, 14, 15, 27, 29, 30, 31]
+    noheadstill_dict['t5.2016.10.05'] = [8, 9, 11, 12, 13, 14, 16, 17, 18, 21, 22]
+    noheadstill_dict['t5.2016.10.07'] = [2, 3, 4, 5, 6, 8, 9, 10, 11, 14, 15, 16, 17, 18]
+    noheadstill_dict['t5.2016.10.10'] = [5, 8, 10, 11, 12, 14, 15, 16, 17, 20, 21, 22, 24, 25, 26, 28, 29, 30]
+    noheadstill_dict['t5.2016.10.12'] = [4, 10, 12, 13, 14, 17, 18, 19, 22, 23, 25, 26, 28, 29, 30, 31]
+    noheadstill_dict['t5.2016.10.13'] = [2, 3, 5, 7, 8, 9, 13, 14, 15, 17, 18, 19, 21, 22, 24]
+    noheadstill_dict['t5.2016.10.17'] = [2, 4]
+    noheadstill_dict['t5.2016.10.19'] = [2, 4]
+    noheadstill_dict['t5.2016.10.24'] = [3, 5, 17, 19, 26, 28, 34, 38, 41, 45]
+    noheadstill_dict['t5.2016.10.26'] = [3, 5, 9, 13, 23, 28, 34]
+    noheadstill_dict['t5.2016.10.31'] = [3, 5, 6, 7, 8, 9]
+    noheadstill_dict['t5.2016.12.06'] = [3, 5]
+    noheadstill_dict['t5.2016.12.08'] = [5, 7]
+    noheadstill_dict['t5.2016.12.15'] = [4, 8, 11, 12, 13, 14, 17, 18, 19]
+    noheadstill_dict['t5.2016.12.16'] = [6, 8]
+    noheadstill_dict['t5.2016.12.19'] = [3, 5]
+    noheadstill_dict['t5.2016.12.21'] = [3, 6, 12, 13]
+    noheadstill_dict['t5.2017.01.04'] = [4, 7]
+    noheadstill_dict['t5.2017.01.30'] = [27, 28, 29]
+    noheadstill_dict['t5.2017.02.15'] = [19, 21, 22, 23, 24]
+    noheadstill_dict['t5.2017.02.22'] = [5, 6, 7, 8, 9, 10]
+    noheadstill_dict['t5.2017.03.30'] = [10, 11, 12, 14]
+    noheadstill_dict['t5.2017.04.26'] = [15, 16, 17, 18]
+    noheadstill_dict['t5.2017.05.24'] = [16, 17, 18, 19]
+    noheadstill_dict['t5.2017.05.31'] = [3, 5]
+    noheadstill_dict['t5.2017.07.07'] = [2, 3]
+    noheadstill_dict['t5.2017.07.31'] = [18, 19, 20, 21]
+    noheadstill_dict['t5.2017.08.04'] = [7, 8]
+    noheadstill_dict['t5.2017.08.07'] = [6, 7, 8]
+    noheadstill_dict['t5.2017.09.20'] = [4, 5, 6, 7, 8, 9, 10, 11, 12]
+    noheadstill_dict['t5.2017.12.27'] = [4, 6, 13, 14, 15]
+    noheadstill_dict['t5.2018.01.08'] = [0, 1, 2]
+    noheadstill_dict['t5.2018.01.17'] = [2, 3]
+    noheadstill_dict['t5.2018.01.19'] = [4]
+    noheadstill_dict['t5.2018.01.22'] = [7]
+    noheadstill_dict['t5.2018.01.24'] = [23, 24]
+    noheadstill_dict['t5.2018.04.09'] = [4, 5, 6, 7, 8]
+    noheadstill_dict['t5.2018.04.16'] = []
+    noheadstill_dict['t5.2018.04.18'] = []
+    noheadstill_dict['t5.2018.04.23'] = []
+    noheadstill_dict['t5.2018.04.25'] = []
+    noheadstill_dict['t5.2018.05.14'] = []
+    noheadstill_dict['t5.2018.05.16'] = []
+    noheadstill_dict['t5.2018.06.06'] = []
+    noheadstill_dict['t5.2018.06.11'] = []
+    noheadstill_dict['t5.2018.06.13'] = [4, 5, 6, 7, 8, 9]
+    noheadstill_dict['t5.2018.06.25'] = []
+    noheadstill_dict['t5.2018.06.27'] = []
+    noheadstill_dict['t5.2018.07.02'] = []
+    noheadstill_dict['t5.2018.07.06'] = []
+    noheadstill_dict['t5.2018.07.11'] = []
+    noheadstill_dict['t5.2018.07.25'] = [5, 6, 7, 8, 9]
+    noheadstill_dict['t5.2018.07.27'] = []
+    noheadstill_dict['t5.2018.08.06'] = []
+    noheadstill_dict['t5.2018.08.08'] = []
+    noheadstill_dict['t5.2018.08.22'] = [24, 25, 26, 27, 28, 29]
+    noheadstill_dict['t5.2018.09.17'] = [24, 25, 27, 28, 30, 31]
+    noheadstill_dict['t5.2018.10.24'] = [2, 3, 4, 5, 6]
+    noheadstill_dict['t5.2018.11.21'] = []
+    noheadstill_dict['t5.2018.11.28'] = []
+    noheadstill_dict['t5.2018.12.12'] = []
+    noheadstill_dict['t5.2018.12.17'] = []
+    noheadstill_dict['t5.2018.12.19'] = [13, 14, 15, 16, 17]
+    noheadstill_dict['t5.2019.01.09'] = []
+    noheadstill_dict['t5.2019.01.14'] = []
+    noheadstill_dict['t5.2019.01.16'] = []
+    noheadstill_dict['t5.2019.01.23'] = [16, 17, 18, 19, 21]
+    noheadstill_dict['t5.2019.01.30'] = []
+    noheadstill_dict['t5.2019.02.22'] = [22, 23, 24, 25, 26]
+    noheadstill_dict['t5.2019.03.13'] = []
+    noheadstill_dict['t5.2019.03.20'] = [27, 28, 29, 30, 32]
+    noheadstill_dict['t5.2019.03.27'] = [11, 18, 20, 22, 25, 27, 29]
+    noheadstill_dict['t5.2019.04.01'] = []
+    noheadstill_dict['t5.2019.04.03'] = []
+    noheadstill_dict['t5.2019.04.08'] = []
+    noheadstill_dict['t5.2019.04.29'] = [26, 27, 28, 29, 30]
+    noheadstill_dict['t5.2019.05.29'] = [11, 12, 13, 14, 15]
+    noheadstill_dict['t5.2019.06.19'] = [26, 27, 28, 29, 30]
+    noheadstill_dict['t5.2019.07.01'] = [24, 25, 26, 27, 28]
+    noheadstill_dict['t5.2019.09.18'] = [31, 32]
+    noheadstill_dict['t5.2019.10.28'] = [2, 4, 5, 6, 7]
+    noheadstill_dict['t5.2019.11.27'] = [31, 33, 36]
+    noheadstill_dict['t5.2019.12.09'] = [22, 23, 24, 25, 26]
+    noheadstill_dict['t5.2020.01.13'] = [26, 27, 28, 30]
+    noheadstill_dict['t5.2020.02.26'] = []
+    
+    block_constraints = dict()
+
+    for key, value in noheadstill_dict.items():
+        new_key = FILE_DIR + 'historical/' + key + '.mat'
+        block_constraints[new_key] = value
+
+    # new
+    noheadstill_dict_new                  = dict()
+    noheadstill_dict_new['t5.2021.07.26'] = [2, 3, 4]
+    noheadstill_dict_new['t5.2021.07.07'] = [1, 2, 3]
+    noheadstill_dict_new['t5.2021.06.02'] = [2, 3, 4] 
+    noheadstill_dict_new['t5.2021.06.23'] = [1, 3]
+    noheadstill_dict_new['t5.2021.05.26'] = [1, 2, 3]
+    noheadstill_dict_new['t5.2021.07.14'] = [1, 3, 4]
+    noheadstill_dict_new['t5.2021.07.08'] = [2, 3, 4]
+    noheadstill_dict_new['t5.2021.05.05'] = [3, 4, 5]
+    noheadstill_dict_new['t5.2021.05.17'] = [2, 3, 4]
+    noheadstill_dict_new['t5.2021.04.26'] = [5, 6, 7]
+    noheadstill_dict_new['t5.2021.07.19'] = [1, 2, 3]
+    noheadstill_dict_new['t5.2021.07.12'] = [4, 5, 6]
+    noheadstill_dict_new['t5.2021.06.07'] = [15, 16, 17]
+    noheadstill_dict_new['t5.2021.05.19'] = [1, 2]
+    noheadstill_dict_new['t5.2021.06.04'] = [16, 17, 18]
+    noheadstill_dict_new['t5.2021.04.28'] = [2, 4, 5]
+    noheadstill_dict_new['t5.2021.06.28'] = [1, 2, 3]
+    noheadstill_dict_new['t5.2021.05.24'] = [2, 3, 4]
+    noheadstill_dict_new['t5.2021.05.03'] = [6]
+    noheadstill_dict_new['t5.2021.06.30'] = [5, 7]
+
+    for key, value in noheadstill_dict_new.items():
+        new_key = FILE_DIR + 'new/' + key + '.mat'
+        block_constraints[new_key] = value
+    
+    return block_constraints
 
 
+
+'''
 def loadDataset(data_dir, participant):
-    '''Load dataset files. Inputs are:
+    Load dataset files. Inputs are:
     
         data_dir (str)    - path to data folder
         participant (str) - participant ID
         
     We assume files are of the form:
-            data_dir/participant/[ID].YYYY.MM.DD.mat'''
+            data_dir/participant/[ID].YYYY.MM.DD.mat
     
     def _getDate(session_file):
         
@@ -35,10 +164,11 @@ def loadDataset(data_dir, participant):
     dates   = list(map(_getDate, files))
     ordered = files[np.argsort(dates)]
     return ordered
+'''
     
 
 
-def get_Sessions(files, min_nblocks = 0, getClick = False, manually_remove = []):
+def get_Sessions(files, min_nblocks = 0, getClick = False, block_constraints = None, manually_remove = []):
     '''files (list of str)           - list containing paths to each session's data
        min_nblocks (int)             - minimum number of blocks for a session to be included
        getClick (bool)               - only return sessions with click blocks
@@ -49,12 +179,19 @@ def get_Sessions(files, min_nblocks = 0, getClick = False, manually_remove = [])
     files    = np.setdiff1d(files, manually_remove)
     
     for f in files:
-        dat   = DataStruct(f)
+        dat          = DataStruct(f)
+        valid_blocks = np.copy(dat.blockList)
+        
+        # apply any block subselection
+        if block_constraints is not None and f in block_constraints.keys():
+            valid_blocks = np.intersect1d(valid_blocks, block_constraints[f])
+        
+        # todo: subselect blocks that have click activity
         if getClick:
-            if dat.decClick_continuous.max() > 0 and len(dat.blockList) >= min_nblocks:
+            if dat.decClick_continuous.max() > 0 and len(valid_blocks) >= min_nblocks:
                 sessions.append(f)
         else:
-            if len(dat.blockList) >= min_nblocks:
+            if len(valid_blocks) >= min_nblocks:
                 sessions.append(f)
             
     return sessions
@@ -328,67 +465,3 @@ def getTrainTest(struct, fields, train_size = 0.67, task = None, blocks = None, 
   
   
 
-def getTrainTest_deprecated(struct, train_size = 0.67, sigma = None, causal_filter = True, task = None, blocks = None, shuffle = False, returnFlattened = False, returnCursor = False):
-    '''
-    Code for getting training and test data. Inputs are:
-
-      struct (DataStruct)      - session to train on
-      train_size (float)       - fraction of blocks to use on training 
-      sigma (float)            - variance of gaussian filter to smooth neural data; default no smoothing
-      task (str)               - task type to train and test on; defaults to all data   
-      blocks (list of int)     - blocks to pull data from; default to all
-      shuffle (bool)           - whether or not to shuffle blocks before splitting into train/test
-      returnFlattened (bool)   - if True, concatenate returned lists into 2D arrays
-      returnCursor (bool)      - if True, return cursor position data as well
-      
-    Returns:
-
-    train_x, test_x (list of 2D arrays) - entries are time x channels arrays of neural data 
-    train_y, test_y (list of 2D arrays) - entries are time x 2 arrays of cursor position error data
-    train_c, test_c (list of 2D arrays) - entries are time x 2 arrays of cursor position data (optional)
-
-    if returnFlattened = True, then the above are concatenated in the time/samples dimension.
-    
-    TODO:
-        - acoid cursor data generation if <returnCursor> set to False
-    '''
-
-    neural, cursorPos, targPos = getNeuralCursorTarget(struct, sigma = sigma, causal_filter = causal_filter, task = task, blocks = blocks)
-    n_blocks                   = len(neural)
-    train_blocks, test_blocks  = train_test_split(np.arange(n_blocks), train_size = train_size, shuffle = shuffle)
-    
-    # generate cursor error signal for regressing FRs against:
-    cursorErr = list()
-    for i in range(n_blocks):
-        cursorErr.append([targ - cur for targ, cur in zip(targPos[i], cursorPos[i])])
-    
-    train_x, test_x = list(), list()
-    train_y, test_y = list(), list()
-    train_c, test_c = list(), list()
-    
-    # sort training data into output lists:
-    for i in train_blocks:
-        if returnFlattened:
-            train_x.append(np.vstack(neural[i]))
-            train_y.append(np.vstack(cursorErr[i]))
-            train_c.append(np.vstack(cursorPos[i]))
-        else:
-            train_x.append(neural[i])
-            train_y.append(cursorErr[i])
-            train_c.append(cursorPos[i])
-            
-    # same code - maybe not as elegant but more readable for me at least
-    for i in test_blocks:
-        if returnFlattened:
-            test_x.append(np.vstack(neural[i]))
-            test_y.append(np.vstack(cursorErr[i]))
-            test_c.append(np.vstack(cursorPos[i]))
-        else:
-            test_x.append(neural[i])
-            test_y.append(cursorErr[i])
-            test_c.append(cursorPos[i])
-        
-    if returnCursor:
-        return train_x, test_x, train_y, test_y, train_c, test_c
-    else:
-        return train_x, test_x, train_y, test_y

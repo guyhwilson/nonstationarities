@@ -17,7 +17,9 @@ def figSize(x, y):
   swapped so it feels like doing matrix stuff'''
   
   matplotlib.rcParams['figure.figsize'] = [y, x]
-
+  matplotlib.rcParams['pdf.fonttype'] = 42 
+  matplotlib.rcParams['ps.fonttype'] = 42
+  matplotlib.rcParams['font.family'] = 'Arial'
 
 def setTickLabels(ax, labels, which):
     if which == 'x':

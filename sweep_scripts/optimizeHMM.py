@@ -27,8 +27,6 @@ from hmm_utils import HMMRecalibration
 
 import sweep_utils
 
-    
-
 
 # %%%%%%%%%%%% Configurable parameters %%%%%%%%%%%%%%%%%%
 
@@ -39,7 +37,7 @@ probWeighted = 'probWeighted'
 sweepOpts = dict()
 sweepOpts['kappa']      = [0.5, 1, 2, 4, 6, 8, 10]
 sweepOpts['inflection'] = [0.1, 10, 30, 50, 70, 100, 200, 400]  
-sweepOpts['exp']        = [1e-4, 1e-3, 0.01, 0.1, 0.5, 1, 2, 4]
+sweepOpts['exp']        = [0.01, 0.1, 0.5, 1, 2, 4]
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,7 +51,7 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/gwilson/nonstationarities/' + args.participant + '/train/'
+DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/train/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
 files       = glob.glob(DATA_DIR + '*')
 sweepOpts['file'] = files
@@ -80,11 +78,10 @@ if __name__ == '__main__':
     # split hyperparams list into chunks and select chunk that corresponds to this job ID
     sweep_args = sweep_utils.generateArgs(sweepOpts, baseOpts)
     sweep_args = np.array_split(sweep_args, args.n_jobs)[args.jobID]
-
+    
     print('Number of jobs: ', len(sweep_args))
     print('Number of CPUs: ', joblib.cpu_count())
     print('Running...')
-    
  
     # if we have multiple CPUs, take advantage of them:
     if joblib.cpu_count() == 1:
@@ -94,6 +91,7 @@ if __name__ == '__main__':
     else:
         scores = Parallel(n_jobs=-1, verbose = 0)(delayed(sweep_utils.test_HMM)(arg) for arg in sweep_args)
     
+    print('Done.')
     np.save(SAVE_PATH, scores)
 
 

@@ -46,7 +46,7 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/gwilson/nonstationarities/' + args.participant + '/train/'
+DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/train/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
 files       = glob.glob(DATA_DIR + '*')
 sweepOpts['file'] = files
@@ -55,12 +55,13 @@ sweepOpts['file'] = files
 # generate unchanging arguments for stabilizer
 baseOpts = dict()
 baseOpts['model']        = 'FactorAnalysis'
-baseOpts['n_components'] = 8
-baseOpts['B']            = 180
-baseOpts['thresh']       = 0.01
-baseOpts['kappa']        = 2
-baseOpts['inflection']   = 50 
-baseOpts['exp']          = 0.1
+baseOpts['n_components'] = 6
+baseOpts['B']            = 160
+baseOpts['thresh']       = 0.04
+
+baseOpts['kappa']        = 1
+baseOpts['inflection']   = 10 
+baseOpts['exp']          = 4
 
 
 gridSize     = 20     

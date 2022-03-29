@@ -2,60 +2,54 @@ import numpy as np
 
 
 
-def get_RTIData(neural, cursor, IsClick, lookback, MinDist = 0, MinTime = 0, ReturnInds = False):
-    '''Generate neural features and target error signals via retrospective target
-       inference (RTI) approach. Inputs are:
-       
-           neural (2D array)   - time x channels array of neural recordings
-           cursor (2D array)   - time x 2 array of cursor positions
-           IsClick (1D array)  - binary-valued array of decoded clicks
-           lookback (int)      - number of previous timebins before a click to use 
-           MinDist (float)     - exclude bins closer than this threshold from being selected (arbitrary units)
-           MinTime (int)       - exclude bins within this time window of click from being selected (bins)
-           ReturnInds (bool)   - whether or not to return the selected timepoints (default: false)
-           
-       Returns:
-       
-           features (2D array)     - time x channels of neural features
-           targets (2D array)      - time x 2 array of (inferred) cursor error vectors
-           selectedIdxs (1D array) - indexes of timepoints used from the original neural, cursor inputs (optional)
-    '''
+class RTI(object):
+    """
+    RTI model for unsupervised recalibration. 
+    """
     
-    assert len(IsClick.shape)  == 1, "Expected 1D array for input <isClick>"
-    assert lookback > 0 and isinstance(lookback, int), "Lookback must be positive integer"
-    assert MinDist >= 0, "MinDist must be nonnegative"
+    def __init__(self, look_back, min_dist, min_time):
+        '''Inputs are:
+        
+        '''
+        
+        assert min_dist >= 0, "min_dist parameter must be nonnegative"
+        assert min_time >= 0, "min_time parameter must be nonnegative"
+        assert look_back >= 0, "look_back parameter must be nonnegative"
+        
+        self.look_back = int(look_back)
+        self.min_dist  = min_dist
+        self.min_time  = int(min_time)
     
-    success_clicks    = np.where(IsClick == 1)[0]
-    features, targets = list(), list()
-    selectedIdxs      = list()
     
-    for i in success_clicks:
-        if i > lookback:     # avoid clicks where not enough previous data to pull
-            targ    = cursor[i, :]  
-            start   = i - lookback        # look back at previous timepoints 
-            stop    = i - MinTime + 1     # include only up to some temporal window prior to click 
+    def label(self, neural, cursor, click_state):
+        '''Label data to provide estimated target states.'''
+        
+        clicks   = np.where(click_state == 1)[0]
+        features = list()
+        targets  = list()
+        
+        for i in clicks:
+            target = cursor[i, :]
+            start  = max(i - self.look_back, 0)  # look back at previous timepoints 
+            stop   = i - self.min_time + 1       # include only up to some window prior to click 
+            
+            # subselect time range of interest before click
+            displacement_snippet = target - cursor[start:stop, :]
+            distance_snippet     = np.linalg.norm(displacement_snippet, axis = 1)
+            neural_snippet       = neural[start:stop, :]
+            
+            # now fine-tune that selection with some heuristics
+            try:
+                far_idx       = distance_snippet > self.min_dist  # distant from inferred target
+                approach_idx  = np.gradient(distance_snippet) < 0 # cursor heading toward inferred target
+                select_idx    = np.logical_and(far_idx, approach_idx)
 
+                features.append(neural_snippet[select_idx, :])
+                targets.append(displacement_snippet[select_idx, :])
+            except:
+                pass  # some edge cases where very little data that doesnt meet requirements 
 
-            neural_retro  = neural[start:stop, :] 
-            curErr_retro  = targ - cursor[start:stop, :] 
-            dist_retro    = np.linalg.norm(curErr_retro, axis = 1)
-
-
-            farIdx        = dist_retro >= MinDist        # time points spatially distant from inferred target
-            approachIdx   = np.gradient(dist_retro) < 0  # time points where cursor heading toward inferred target
-            #approachIdx   = np.ones((stop - start, ))  
-
-            selectIdx     = np.where(np.logical_and(farIdx, approachIdx))[0]
-
-            features.append(neural_retro[selectIdx, :]), targets.append(curErr_retro[selectIdx, :])
-            selectedIdxs.append(start + selectIdx)
-
-    features     = np.vstack(features)
-    targets      = np.vstack(targets)
-    selectedIdxs = np.concatenate(selectedIdxs)
-    
-    if ReturnInds:
-        return features, targets, selectedIdxs
-    else:
+        features     = np.vstack(features)
+        targets      = np.vstack(targets)
+        
         return features, targets
-

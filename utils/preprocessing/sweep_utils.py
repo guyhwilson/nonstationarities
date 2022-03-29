@@ -70,7 +70,7 @@ def formatJobOutput(f, prune = None):
     raw = np.load(f, allow_pickle = True)
     df  = pd.DataFrame([x for x in raw])
     
-    if prune is not None:
+    if prune is not None and not df.empty:
         df = get_subsetDF(df, prune)
     
     return df
@@ -85,13 +85,20 @@ def getSummaryDataFrame(files, fields = None, prune = None):
                                   based on specified values; keys correspond to
                                   column labels, values to desired column value'''
     
-    scores = [formatJobOutput(f, prune) for f in files]
-    df     = pd.concat(scores)
+    scores = list()
+    # avoid doing all at once to avoid overusing memory (slower but no crashes)
+    for i, f in enumerate(files):
+        formatted = formatJobOutput(f, prune)
+        
+        if fields is not None and not formatted.empty:
+            formatted = formatted[fields]
+        scores.append(formatted)
+
+    df = pd.concat(scores)
     
     if 'days_apart' not in df.columns:
         df['days_apart'] = df.apply(lambda row: get_time_difference(row['file']), axis=1)
-    if fields is not None:
-        df = df[fields]
+
     return df
 
 
@@ -158,7 +165,7 @@ def test_HMM(arg):
     test_neural       = np.vstack(pair_data['B_test_neural'])
     test_targvec      = np.vstack(pair_data['B_test_targvec'])
     
-    new_decoder = HMM.recalibrate(decoder, train_neural, train_cursorPos)
+    new_decoder = HMM.recalibrate(decoder, train_neural, train_cursorPos, probThreshold = arg['probWeighted'])
     score_dict  = makeScoreDict(new_decoder, test_neural, test_targvec, arg, pair_data)
     
     return score_dict

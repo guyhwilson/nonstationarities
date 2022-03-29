@@ -26,9 +26,9 @@ import sweep_utils
 
 sweepOpts                 = dict()
 sweepOpts['model']        = ['PCA', 'FactorAnalysis']
-sweepOpts['n_components'] = [1, 2, 4, 6, 8, 10, 12, 14]
-sweepOpts['B']            = [100, 120, 140, 160, 180, 192]
-sweepOpts['thresh']       = [0.01, 0.05, 0.1, 0.5, 1]
+sweepOpts['n_components'] = [2, 4, 6, 8, 10, 12]
+sweepOpts['B']            = [80, 100, 120, 140, 160, 180, 190]
+sweepOpts['thresh']       = [0.01, 0.04, 0.07, 0.1, 0.5, 0.7, 0.9]
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,13 +43,13 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/gwilson/nonstationarities/' + args.participant + '/train/'
+DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/train/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
 files       = glob.glob(DATA_DIR + '*')
 sweepOpts['file'] = files
 
 
-# generate unchanging arguments for HMM 
+# generate unchanging arguments for stabilizer
 baseOpts = dict()
 
 
@@ -73,7 +73,8 @@ if __name__ == '__main__':
             scores.append(sweep_utils.test_Stabilizer(arg))
     else:
         scores = Parallel(n_jobs=-1, verbose = 0)(delayed(sweep_utils.test_Stabilizer)(arg) for arg in sweep_args)
-
+        
+    print('Done.')
     np.save(SAVE_PATH, scores)
     
     

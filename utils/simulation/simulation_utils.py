@@ -6,7 +6,7 @@ import copy
 import sys
 sys.path.append('../utils/recalibration/')
 import stabilizer_utils
-
+import RTI_utils
 
 
 def generateUnits(n_units, SNR = 1):
@@ -46,10 +46,17 @@ def simulateUnitActivity(tuning, noise, nSteps):
 
 
 def sampleSNR():
-    a, b, loc, scale = 4.904613603871817, 1358376.9875482046, 0.3669615703933665, 372538.74919432227
-    sample_SNR       = (np.random.beta(a, b) * scale/2.5) 
+
+    means = np.array([[2.78165778], [1.6244981 ]])
+    covs  = np.array([[[0.07465756]], [[0.11382677]]])
     
-    return sample_SNR
+    z = np.random.binomial(1, 0.6716436)
+    y = np.random.normal(means[z], covs[z]**0.5)
+    
+    y *= 0.3365
+    y -= 0.04438
+    
+    return y
 
 
 def orthogonalizeAgainst(v2, v1):
@@ -111,11 +118,11 @@ def gainSweep(cfg, possibleGain, verbose = False):
     meanTTT   = np.zeros((len(possibleGain),))
 
     for g in range(len(possibleGain)):
-        if verbose:
-            print(str(g) + ' / ' + str(len(possibleGain)))
         sweep_cfg['beta'] = possibleGain[g]
         results           = simulateBCIFitts(sweep_cfg)
         meanTTT[g]        = np.mean(results['ttt'])
+        if verbose:
+            print(str(g) + ' / ' + str(len(possibleGain)), 'gain = {:.1f}, ttt = {:.1f}'.format(possibleGain[g], meanTTT[g]))
         
     minIdx = np.argmin(meanTTT)
        
@@ -155,8 +162,6 @@ def simulate_OpenLoopRecalibration(cfg, nSteps = 10000):
     neural_OL, posErr_OL = simulateUnitActivity(cfg['neuralTuning'], noise = 0.3, nSteps= nSteps)
     lr                   = LinearRegression(fit_intercept = True).fit(neural_OL, posErr_OL)
     D_OL                 = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
-    decVec_OL            = np.hstack([np.ones((neural_OL.shape[0], 1)), neural_OL]).dot(D_OL)
-    #D_OL                 = normalizeDecoderGain(D_OL, decVec_OL, posErr_OL, thresh = 0.4)
     
     D_OL = renormalizeDecoder(D_OL, cfg)
     
@@ -172,7 +177,6 @@ def simulate_ClosedLoopRecalibration(cfg):
     lr           = LinearRegression(fit_intercept = True).fit(neural, posErr)
     D_CL         = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
     decVec_CL    = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_CL)
-    #D_CL         = normalizeDecoderGain(D_CL, decVec_CL, posErr, thresh = 0.4)
     
     D_CL = renormalizeDecoder(D_CL, cfg)
 
@@ -181,7 +185,13 @@ def simulate_ClosedLoopRecalibration(cfg):
 def simulate_HMMRecalibration(cfg, hmm):
     
     calib_block             = simulateBCIFitts(cfg) 
-    targStates, pTargState  = hmm.viterbi_search(calib_block['rawDecTraj'], calib_block['posTraj'])
+    
+    if hmm.getClickProb is not None:        
+        clickTraj = np.zeros((cfg['nSimSteps']))
+        clickTraj[calib_block['trialStart']] =  1
+        targStates, pTargState  = hmm.viterbi_search(calib_block['rawDecTraj'], calib_block['posTraj'], clickTraj)
+    else:
+        targStates, pTargState  = hmm.viterbi_search(calib_block['rawDecTraj'], calib_block['posTraj'])
 
     inferredTargLoc  = hmm.targLocs[targStates.astype('int').flatten(),:]
     inferredPosErr   = inferredTargLoc - calib_block['posTraj']
@@ -189,10 +199,29 @@ def simulate_HMMRecalibration(cfg, hmm):
 
     lr             = LinearRegression(fit_intercept = True).fit(neural, inferredPosErr)
     D_HMM          = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
-    decVec_HMM     = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_HMM)
-    D_HMM          = normalizeDecoderGain(D_HMM, decVec_HMM, inferredPosErr, thresh = 0.4)
-    
+    D_HMM          = renormalizeDecoder(D_HMM, cfg)
+
     return D_HMM
+
+
+def simulate_RTIRecalibration(cfg, rti):
+    
+    calib_block = simulateBCIFitts(cfg) 
+
+    clickTraj = np.zeros((cfg['nSimSteps']))
+    clickTraj[calib_block['trialStart']] =  1
+    
+    neural, inferredPosErr = rti.label(calib_block['neuralTraj'], calib_block['posTraj'], clickTraj)
+    
+    if neural.size != 0:
+        lr             = LinearRegression(fit_intercept = True).fit(neural, inferredPosErr)
+        D_RTI          = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T        
+        D_RTI          = renormalizeDecoder(D_RTI, cfg)
+        
+    else:
+        D_RTI = cfg['D']
+
+    return D_RTI
 
 
 
@@ -210,9 +239,12 @@ def initializeBCI(base_opts):
         
         '''
     
-    initialTuning = generateUnits(n_units = base_opts['nUnits'], SNR = base_opts['SNR'])
-    if base_opts['center_means']:
-        initialTuning[:, 0] = 0 # assume features are centered   
+    if 'SNR' not in base_opts.keys() or base_opts['SNR'] is None:
+        SNR = sampleSNR()
+    else:
+        SNR = base_opts['SNR']
+    
+    initialTuning = generateUnits(n_units = base_opts['nUnits'], SNR = SNR)
     
     cfg = dict()
     cfg['alpha']        = base_opts['alpha'] 
@@ -223,16 +255,19 @@ def initializeBCI(base_opts):
     
     if 'n_components' in base_opts.keys():
         assert 'model_type' in base_opts.keys() and 'n_components' in base_opts.keys(), "Missing some input parameters." 
+        initialTuning[:, 0] = 0 # assume features are centered   
         calNeural, calVelocity    = simulateUnitActivity(cfg['neuralTuning'], noise = 0.3, nSteps = base_opts['nTrainingSteps'])
         decoder_dict, stabilizer  = fit_LatentDecoder(calNeural, calVelocity, base_opts)
         cfg['D']                  = decoder_dict['D']
-    else:    
+        
+    else:   
         cfg['D'] = simulate_OpenLoopRecalibration(cfg, base_opts['nTrainingSteps'] )
         
     cfg['beta'] = gainSweep(cfg, base_opts['possibleGain'], verbose = False)
- 
+         
     if 'n_components' in base_opts.keys():
         return cfg, decoder_dict, stabilizer
+    
     else:
         return cfg
 
@@ -244,7 +279,7 @@ def fit_LatentDecoder(neural, posErr, args):
     stab     = stabilizer_utils.Stabilizer(model_type = args['model_type'], n_components = args['n_components'])
     stab.fit_ref([neural])
     
-    Q_ref    = stabilizer_utils.get_FactorAnalysisMap(stab.ref_model)
+    Q_ref    = stab.getNeuralToLatentMap(stab.ref_model)
     latents  = (neural - neural.mean(axis = 0)).dot(Q_ref)
     lr       = LinearRegression(fit_intercept = True).fit(latents, posErr)
      
@@ -252,28 +287,27 @@ def fit_LatentDecoder(neural, posErr, args):
     D_coef   = h.dot(Q_ref.T)                                         # compose to get neural --> latent --> output 
     D_latent = np.hstack([lr.intercept_[:, np.newaxis], D_coef]).T    # add bias terms
     
-    decVec    = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_latent)
-    D_latent  = normalizeDecoderGain(D_latent, decVec, posErr, thresh = 0.4)
+    #decVec   = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_latent)
+    D_latent = renormalizeDecoder(D_latent, cfg = dict())
     
     decoder_dict = dict()
     decoder_dict['Q'] = Q_ref    # neural --> latent
     decoder_dict['h'] = h        # latent --> velocity 
     decoder_dict['D'] = D_latent # neural --> latent --> velocity
-    decoder_dict['lr_intercept'] = lr.intercept_[:, np.newaxis]
+    decoder_dict['lr_intercept'] = D_latent[0, :][:, None]
 
     return decoder_dict, stab
 
 
-def recalibrate_LatentDecoder(neural, decoder_dict, stab, args):
+def recalibrate_LatentDecoder(neural, decoder_dict, stab, args, daisy_chain):
 
-    stab.fit_new([neural], B = args['B'], thresh = args['thresh'])
+    stab.fit_new([neural], B = args['B'], thresh = args['thresh'], daisy_chain = daisy_chain)
     
-    G_new        = stabilizer_utils.get_FactorAnalysisMap(stab.new_model)
+    G_new        = stab.getNeuralToLatentMap(stab.new_model)
     D_coefnew    = decoder_dict['h'].dot(G_new.dot(stab.R).T)                # compose dimreduce with latent --> latent 
     D_new        = np.hstack([decoder_dict['lr_intercept'], D_coefnew]).T    # add bias terms
      
     decVec_new   = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_new)
-    #D_new        = simulation_utils.normalizeDecoderGain(D_stab, decVec_new, posErr, thresh = 0.4)
         
     return D_new
     
@@ -283,23 +317,21 @@ def simulate_LatentOpenLoopRecalibration(cfg, decoder_dict, stab, args):
     neural_OL, posErr_OL = simulateUnitActivity(cfg['neuralTuning'], noise = 0.3, nSteps = nSteps)
     
     D_latent  = recalibrate_LatentDecoder(neural_OL, decoder_dict, stab, args)
-    decVec_OL = np.hstack([np.ones((neural_OL.shape[0], 1)), neural_OL]).dot(D_latent)
-    D_latent  = normalizeDecoderGain(D_latent, decVec_OL, posErr_OL, thresh = 0.4)
+    #D_latent  = normalizeDecoderGain(D_latent, decVec_OL, posErr_OL, thresh = 0.4)
     
     D_latent = renormalizeDecoder(D_latent, cfg)
 
     return D_latent 
     
     
-def simulate_LatentClosedLoopRecalibration(cfg, decoder_dict, stab, args):
+def simulate_LatentClosedLoopRecalibration(cfg, decoder_dict, stab, args, daisy_chain = False):
     '''Supervised recalibration of latent space decoder.'''
     
     CL_block  = simulateBCIFitts(cfg)
     posErr_CL = CL_block['targTraj'] - CL_block['posTraj']
     neural_CL = CL_block['neuralTraj']
     
-    D_latent  = recalibrate_LatentDecoder(neural_CL, decoder_dict, stab, args)
-    decVec_CL = np.hstack([np.ones((neural_CL.shape[0], 1)), neural_CL]).dot(D_latent)
+    D_latent  = recalibrate_LatentDecoder(neural_CL, decoder_dict, stab, args, daisy_chain)
     #D_latent  = normalizeDecoderGain(D_latent, decVec_CL, posErr_CL, thresh = 0.4)
     
     D_latent = renormalizeDecoder(D_latent, cfg)

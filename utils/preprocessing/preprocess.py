@@ -38,20 +38,24 @@ class DataStruct(object):
         self.targetPos_continuous = dat[7].astype('float')
         self.decClick_continuous  = np.concatenate(dat[11])
         self.onTarget_continuous  = np.concatenate(dat[8])
+        self.TX_continuous        = dat[12].astype('float')
         self.TX_thresh            = dat[13]
         self.trialEpochs          = dat[15] - 1  # account for MATLAB's 1-indexing
-        self.trialEpochs[:, 1]   -= 1            # account for MATLAB's inclusive indexing 
+        self.trialEpochs[:, 1]   += 1            # account for MATLAB's inclusive indexing 
+        self.interTrialPeriods    = dat[17][~np.isnan(dat[17]).any(axis = 1), :].astype(int) - 1
         self.sysClock             = dat[4]
         self.nspClocks            = dat[5]
         self.decVel               = dat[10]
         self.n_trials             = self.trialEpochs.shape[0]
+        self.n_channels           = self.TX_continuous.shape[1] 
          
         # now load in neural data and smooth if requested:
         if causal_filter > 0:
-            self.TX_continuous = firingrate.gaussian_filter1d(dat[12].astype('float'), sigma = causal_filter, axis = 0, causal = True)
-        else:
-            self.TX_continuous = dat[12].astype('float')
-        self.n_channels = self.TX_continuous.shape[1] 
+            self.TX_continuous = firingrate.gaussian_filter1d(self.TX_continuous, sigma = causal_filter, axis = 0, causal = True)
+        
+        # correct the flipped pedestal cable day
+        if self.date in ['2017.08.04']: # add if any more such days found
+            self.TX_continuous = self.TX_continuous[:, np.concatenate([np.arange(96, 192), np.arange(0, 96)])]
 
         TX         = list()
         blockNums  = list()
@@ -94,7 +98,9 @@ class DataStruct(object):
         self.trialType    = np.asarray(trialType, dtype = 'object')
         
         self.trialEpochs  = self.trialEpochs[np.asarray(keep), :]
-
+                           
+        
+        # align screen coordinates across tasks
         self.screenAligned = False
         if alignScreens:
             self.alignTaskScreens()
@@ -111,7 +117,24 @@ class DataStruct(object):
             screen_realignments = np.load('../utils/misc_data/screen_realignments.npy', allow_pickle = True).item()
             
             for i, task in enumerate(self.trialType):
-                self.cursorPos[i] -= screen_realignments[task]
-                self.targetPos[i] -= screen_realignments[task]
+                    self.cursorPos[i] -= screen_realignments[task]
+                    self.targetPos[i] -= screen_realignments[task]
+
+            for i, block in enumerate(self.blockList):
+                task  = np.unique(self.trialType[self.blockNums == block])
+                start = self.trialEpochs[self.blockNums == block, 0].min()
+
+                try:
+                    stop = self.trialEpochs[self.blockNums == self.blockList[i+1], 0].min() - 1
+                except:
+                    stop  = self.trialEpochs[self.blockNums == block, 1].max()
+
+                assert len(task) == 1, "Error: multiple trial types within a block?"
+
+                self.cursorPos_continuous[(start - 1):stop, :] -= screen_realignments[task[0]]
+                self.targetPos_continuous[(start - 1):stop, :] -= screen_realignments[task[0]]
+
+                
+            
         else:
             print('Screens already aligned across tasks. Skipping.')

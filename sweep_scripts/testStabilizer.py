@@ -25,9 +25,9 @@ import sweep_utils
 
 baseOpts = dict()
 baseOpts['model']        = 'FactorAnalysis'
-baseOpts['n_components'] = 8
+baseOpts['n_components'] = 6
 baseOpts['B']            = 160
-baseOpts['thresh']       = 0.01
+baseOpts['thresh']       = 0.04
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,7 +42,7 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/gwilson/nonstationarities/' + args.participant + '/test/'
+DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/test/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
 files       = glob.glob(DATA_DIR + '*')
 
