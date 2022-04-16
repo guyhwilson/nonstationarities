@@ -91,8 +91,9 @@ if __name__ == '__main__':
     else:
         scores = Parallel(n_jobs=-1, verbose = 0)(delayed(sweep_utils.test_HMM)(arg) for arg in sweep_args)
     
-    print('Done.')
     np.save(SAVE_PATH, scores)
+    print('Done.')
+
 
 
 

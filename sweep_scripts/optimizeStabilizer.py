@@ -28,7 +28,7 @@ sweepOpts                 = dict()
 sweepOpts['model']        = ['PCA', 'FactorAnalysis']
 sweepOpts['n_components'] = [2, 4, 6, 8, 10, 12]
 sweepOpts['B']            = [80, 100, 120, 140, 160, 180, 190]
-sweepOpts['thresh']       = [0.01, 0.04, 0.07, 0.1, 0.5, 0.7, 0.9]
+sweepOpts['thresh']       = [1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1]
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

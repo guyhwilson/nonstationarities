@@ -11,6 +11,7 @@ HOME = os.path.expanduser('~')
 
 [sys.path.append(f) for f in glob.glob(HOME + '/projects/nonstationarities/utils/*')]
 from preprocess import DataStruct
+import preprocess
 from plotting_utils import figSize
 from lineplots import plotsd
 from session_utils import *
@@ -75,7 +76,7 @@ def formatJobOutput(f, prune = None):
     
     return df
 
-def getSummaryDataFrame(files, fields = None, prune = None):
+def getSummaryDataFrame(files, fields = None, prune = None, int_encode_files = False):
     '''Format list of output files from test_XXX() calls in batchSweep.sh
        Returns as a pandas dataframe. Inputs are:
        
@@ -92,9 +93,22 @@ def getSummaryDataFrame(files, fields = None, prune = None):
         
         if fields is not None and not formatted.empty:
             formatted = formatted[fields]
+            
+        # if true, encode file field with integer tuple to represent dates 
+        # (for cutting down on memory usage by string encoding) 
+        columns = formatted.columns.values.tolist()
+        if int_encode_files:
+            if 'file' not in columns:
+                raise ValueError('Column \'files\' not in df but file int encoding requested.')
+            else: 
+                init = '2016.09.26'
+                formatted['file'] = formatted['file'].apply(lambda x: [preprocess.daysBetween(x.split('_to_')[0], init),
+                                                                       preprocess.daysBetween(x.split('_to_')[1], init)] )
+        
+        
         scores.append(formatted)
 
-    df = pd.concat(scores)
+    df = pd.concat(scores).reset_index()
     
     if 'days_apart' not in df.columns:
         df['days_apart'] = df.apply(lambda row: get_time_difference(row['file']), axis=1)
@@ -165,8 +179,11 @@ def test_HMM(arg):
     test_neural       = np.vstack(pair_data['B_test_neural'])
     test_targvec      = np.vstack(pair_data['B_test_targvec'])
     
-    new_decoder = HMM.recalibrate(decoder, train_neural, train_cursorPos, probThreshold = arg['probWeighted'])
-    score_dict  = makeScoreDict(new_decoder, test_neural, test_targvec, arg, pair_data)
+    new_decoder, prob = HMM.recalibrate(decoder, train_neural, train_cursorPos, probThreshold = arg['probWeighted'],
+                                       return_viterbi_prob = True)
+    score_dict        = makeScoreDict(new_decoder, test_neural, test_targvec, arg, pair_data)
+    
+    score_dict['viterbi_prob'] = prob
     
     return score_dict
 

@@ -112,7 +112,8 @@ class HMMRecalibration(object):
      
         
     def decode(self, rawDecodeVec, cursorPos, clickSignal = None, verbose = False):
-        '''Run viterbi algorithm to find marginal probabilities of hidden states at each timestep (given observed data). Inputs are:
+        '''Run forward-backward algorithm to find marginal probabilities of hidden states at each timestep (given observed data). 
+        Inputs are:
 
                 rawDecodeVec (2D array)   - time x 2 array containing decoder outputs at each timepoint
                 cursorPos (2D array)      - time x 2 array of cursor positions  
@@ -152,7 +153,8 @@ class HMMRecalibration(object):
         
  
     
-    def recalibrate(self, decoder, neural, cursorPos, clickSignal = None, probThreshold = 'probWeighted'):
+    def recalibrate(self, decoder, neural, cursorPos, clickSignal = None, 
+                    probThreshold = 'probWeighted', return_viterbi_prob = False):
         '''Code for recalibrating velocity decoder on session data using HMM-inferred target locations. Inputs are:
 
             decoder (Sklearn-like object) - decoder to use
@@ -163,16 +165,19 @@ class HMMRecalibration(object):
         assert isinstance(probThreshold, float) or probThreshold == 'probWeighted', "Invalid probThreshold value. Check input."
 
         targStates, pTargState = list(), list()
+        viterbi_probs          = list()
 
         neural_flattened       = np.concatenate(neural)
         cursorPos_flattened    = np.concatenate(cursorPos)
 
         for i, block_neural in enumerate(neural):
-            rawDecTraj = decoder.predict(block_neural)
-            targs      = self.viterbi_search(rawDecTraj, cursorPos[i], clickSignal)[0]
-            pTargs     = self.decode(rawDecTraj, cursorPos[i], clickSignal)[0]
+            rawDecTraj  = decoder.predict(block_neural)
+            targs, vp   = self.viterbi_search(rawDecTraj, cursorPos[i], clickSignal)
+            pTargs      = self.decode(rawDecTraj, cursorPos[i], clickSignal)[0]
+            
             targStates.append(targs)
             pTargState.append(pTargs)
+            viterbi_probs.append(vp)
 
         targStates      = np.concatenate(targStates)
         pTargState      = np.concatenate(pTargState)
@@ -195,8 +200,12 @@ class HMMRecalibration(object):
                 
         else:
             raise ValueError('<probThreshold> argument not recognized.')
-
-        return decoder
+            
+           
+        if return_viterbi_prob:
+            return decoder, viterbi_probs
+        else:
+            return decoder
     
     
 

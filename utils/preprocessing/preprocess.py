@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.io import loadmat
 import os
+import re
 from copy import deepcopy
 from datetime import date
 import firingrate
@@ -11,8 +12,15 @@ import firingrate
 def daysBetween(date_a, date_b):
     '''Number of days between two sessions. Input format is:
     
-        year.month.day - e.g. '2020.0.113'
+        date (str) - must contain substring year.month.day 
+                     (e.g. '2020.01.13')
     '''
+
+    pat    = '\d\d\d\d\.\d\d\.\d\d'
+    date_a = re.findall(pat, date_a)[0]
+    date_b = re.findall(pat, date_b)[0]
+        
+    
     date_a = date(*[int(x) for x in date_a.split('.')])
     date_b = date(*[int(x) for x in date_b.split('.')])
     days   = (date_a - date_b).days

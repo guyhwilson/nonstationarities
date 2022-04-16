@@ -34,11 +34,14 @@ def bootstrap_LinearRegression(x, y, regressor = LinearRegression(), n_bootstrap
 
 
 
-def makeSessionPairGraph(scores_df, lims = [0, np.inf]):
+def makeSessionPairGraph(scores_df, lims = [0, np.inf], int_encoded = False):
     
-    pat   = '\d\d\d\d\.\d\d\.\d\d'
-    dates = np.asarray([re.findall(pat, x) for x in scores_df['file']])
-    
+    if not int_encoded:
+        pat   = '\d\d\d\d\.\d\d\.\d\d'
+        dates = np.asarray([re.findall(pat, x) for x in scores_df['file']])
+    else:
+        dates = np.asarray([x for x in scores_df['file']])
+
     subselect = np.logical_and(scores_df['days_apart'] >= lims[0], scores_df['days_apart'] < lims[1] )
     
     dates = dates[subselect]

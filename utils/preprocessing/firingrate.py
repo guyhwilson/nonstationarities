@@ -66,15 +66,28 @@ def gaussian_filter1d(input, sigma, axis=-1, order=0, output=None,
     weights = _gaussian_kernel1d(sigma, order, lw)[::-1]
     
     if causal:
-        midpoint           = int((len(weights) - 1) / 2)
+        midpoint = int((len(weights) - 1) / 2)
         weights[(midpoint + 1):] = 0
+        weights                 *= 2 # renormalize
         
     return scipy.ndimage.correlate1d(input, weights, axis, output, mode, cval, 0)
 
 
-def rolling_window(a, window):
-    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
-    strides = a.strides + (a.strides[-1],)
+def rolling_window(a, window_size, padding = None):
+    '''Generate windowed features from a 2D timeseries. Inputs are:
+    
+        a (time x features) - array to segment 
+        window_size (int)   - timelength of windows 
+        
+      Returns '''
+    
+    if padding is not None:
+        zeros = np.zeros((window_size - 1, *a.shape[1:])) + padding
+        a     = np.concatenate([zeros, a])
+    
+    shape   = (a.shape[0] - window_size + 1, window_size) + a.shape[1:]
+    strides = (a.strides[0],) + a.strides
+    
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 

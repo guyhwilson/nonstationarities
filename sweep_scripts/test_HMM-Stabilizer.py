@@ -24,9 +24,6 @@ import sweep_utils
 # %%%%%%%%%%%% Configurable parameters %%%%%%%%%%%%%%%%%%
 
 
-
-
-
 sweepOpts                 = dict()
 #sweepOpts['model']        = ['PCA', 'FactorAnalysis']
 #sweepOpts['n_components'] = [1, 2, 4, 6, 8, 10, 12, 14]
@@ -46,7 +43,7 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/train/'
+DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/test/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
 files       = glob.glob(DATA_DIR + '*')
 sweepOpts['file'] = files
@@ -57,11 +54,11 @@ baseOpts = dict()
 baseOpts['model']        = 'FactorAnalysis'
 baseOpts['n_components'] = 6
 baseOpts['B']            = 160
-baseOpts['thresh']       = 0.04
+baseOpts['thresh']       = 0.01
 
 baseOpts['kappa']        = 1
-baseOpts['inflection']   = 10 
-baseOpts['exp']          = 4
+baseOpts['inflection']   = 0.1
+baseOpts['exp']          = 1
 
 
 gridSize     = 20     

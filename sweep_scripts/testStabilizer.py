@@ -27,7 +27,7 @@ baseOpts = dict()
 baseOpts['model']        = 'FactorAnalysis'
 baseOpts['n_components'] = 6
 baseOpts['B']            = 160
-baseOpts['thresh']       = 0.04
+baseOpts['thresh']       = 0.01
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -100,8 +100,8 @@ def getBlockConstraints(FILE_DIR):
     noheadstill_dict['t5.2019.05.29'] = [11, 12, 13, 14, 15]
     noheadstill_dict['t5.2019.06.19'] = [26, 27, 28, 29, 30]
     noheadstill_dict['t5.2019.07.01'] = [24, 25, 26, 27, 28]
-    noheadstill_dict['t5.2019.09.18'] = [31, 32]
-    noheadstill_dict['t5.2019.10.28'] = [2, 4, 5, 6, 7]
+    noheadstill_dict['t5.2019.09.18'] = []  # array reference issue day
+    noheadstill_dict['t5.2019.10.28'] = [2, 4, 5, 6, 7] 
     noheadstill_dict['t5.2019.11.27'] = [31, 33, 36]
     noheadstill_dict['t5.2019.12.09'] = [22, 23, 24, 25, 26]
     noheadstill_dict['t5.2020.01.13'] = [26, 27, 28, 30]
@@ -142,30 +142,6 @@ def getBlockConstraints(FILE_DIR):
     
     return block_constraints
 
-
-
-'''
-def loadDataset(data_dir, participant):
-    Load dataset files. Inputs are:
-    
-        data_dir (str)    - path to data folder
-        participant (str) - participant ID
-        
-    We assume files are of the form:
-            data_dir/participant/[ID].YYYY.MM.DD.mat
-    
-    def _getDate(session_file):
-        
-        session_date = session_file.split(participant)[1].split('.mat')[0].split('.')[1:] 
-        d = date(*[int(x) for x in session_date])
-        return d
-        
-    files   = np.asarray(glob.glob(data_dir + participant +  '*'))
-    dates   = list(map(_getDate, files))
-    ordered = files[np.argsort(dates)]
-    return ordered
-'''
-    
 
 
 def get_Sessions(files, min_nblocks = 0, getClick = False, block_constraints = None, manually_remove = []):
