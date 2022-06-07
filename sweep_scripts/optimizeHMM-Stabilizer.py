@@ -23,9 +23,9 @@ import sweep_utils
 # %%%%%%%%%%%% Configurable parameters %%%%%%%%%%%%%%%%%%
 
 sweepOpts                 = dict()
-sweepOpts['kappa']      = [0.5, 1, 2, 4, 6, 8, 10]
-sweepOpts['inflection'] = [0.1, 10, 30, 50, 70, 100, 200, 400]  
-sweepOpts['exp']        = [1e-4, 1e-3, 0.01, 0.1, 0.5, 1, 2, 4]
+#sweepOpts['kappa']      = [0.5, 1, 2, 4, 6, 8, 10]
+#sweepOpts['inflection'] = [0.1, 10, 30, 50, 70, 100, 200, 400]  
+#sweepOpts['exp']        = [1e-4, 1e-3, 0.01, 0.1, 0.5, 1, 2, 4]
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,7 +38,6 @@ parser.add_argument('--saveDir', type = str, default = './', help = 'Folder for 
 args  = parser.parse_args()
 
 
-
 # load dataset, add files as a sweep parameter:
 DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/train/'
 SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
@@ -49,17 +48,21 @@ sweepOpts['file'] = files
 # generate unchanging arguments for stabilizer
 baseOpts = dict()
 baseOpts['model']        = 'FactorAnalysis'
-baseOpts['n_components'] = 4
-baseOpts['B']            = 120
-baseOpts['thresh']       = 0.9
+baseOpts['n_components'] = 6
+baseOpts['B']            = 160
+baseOpts['thresh']       = 0.01
 
+
+# unchanging arguments for PRI-T
+baseOpts['kappa']      = 2.0
+baseOpts['inflection'] = 70.0
+baseOpts['exp']        = 0.5
 
 gridSize     = 20     
 stayProb     = 0.999
 probWeighted = 'probWeighted'
+nStates      = gridSize**2
 
-
-nStates = gridSize**2
 baseOpts['probWeighted'] = probWeighted
 baseOpts['pStateStart']  = np.zeros((nStates,1)) + 1/nStates
 baseOpts['stateTrans']   = np.eye(nStates)*stayProb 
@@ -68,7 +71,6 @@ baseOpts['gridSize']     = gridSize
 for x in range(nStates):
     idx                            = np.setdiff1d(np.arange(nStates), x)
     baseOpts['stateTrans'][x, idx] = (1-stayProb)/(nStates-1)
-
 
 
 if __name__ == '__main__':

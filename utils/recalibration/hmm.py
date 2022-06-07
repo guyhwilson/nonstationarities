@@ -171,9 +171,9 @@ class HMMRecalibration(object):
         cursorPos_flattened    = np.concatenate(cursorPos)
 
         for i, block_neural in enumerate(neural):
-            rawDecTraj  = decoder.predict(block_neural)
-            targs, vp   = self.viterbi_search(rawDecTraj, cursorPos[i], clickSignal)
-            pTargs      = self.decode(rawDecTraj, cursorPos[i], clickSignal)[0]
+            rawDecTraj   = decoder.predict(block_neural)
+            targs, vp    = self.viterbi_search(rawDecTraj, cursorPos[i], clickSignal)
+            pTargs, _    = self.decode(rawDecTraj, cursorPos[i], clickSignal)
             
             targStates.append(targs)
             pTargState.append(pTargs)

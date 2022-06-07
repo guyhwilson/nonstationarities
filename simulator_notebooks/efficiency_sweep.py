@@ -69,6 +69,15 @@ min_time  = 30
 ##############################
 
 
+def testReducedData(cfg, test_n_timestamps = 20000):
+    
+    cfg_copy              = copy.deepcopy(cfg)
+    cfg_copy['nSimSteps'] = test_n_timestamps
+    
+    ttt = np.mean(simulateBCIFitts(cfg_copy)['ttt']) 
+    
+    return ttt
+
 
 def simulate_MultiSessionStretch(base_opts, hmm, clickhmm, rti):
     
@@ -105,25 +114,24 @@ def simulate_MultiSessionStretch(base_opts, hmm, clickhmm, rti):
         # supervised CL recal: 
         cfg_dict['supervised_cfg']['D'] = simulation_utils.simulate_OpenLoopRecalibration(cfg_dict['supervised_cfg'])
         cfg_dict['supervised_cfg']['D'] = simulation_utils.simulate_ClosedLoopRecalibration(cfg_dict['supervised_cfg'])
-        
         cfg_dict['supervised_cfg']['beta'] = simulation_utils.gainSweep(cfg_dict['supervised_cfg'], 
                                                                        possibleGain = base_opts['possibleGain'])
-        session_scores[i+1, 0]        = np.mean(simulateBCIFitts(cfg_dict['supervised_cfg'])['ttt'])
-        
+        session_scores[i+1, 0]        = testReducedData(cfg_dict['supervised_cfg'])
+                
         # vanilla HMM 
         cfg_dict['hmm_cfg']['D']    = simulation_utils.simulate_HMMRecalibration(cfg_dict['hmm_cfg'], hmm)
         cfg_dict['hmm_cfg']['beta'] = simulation_utils.gainSweep(cfg_dict['hmm_cfg'], possibleGain = base_opts['possibleGain'])
-        session_scores[i+1, 1]      = np.mean(simulateBCIFitts(cfg_dict['hmm_cfg'])['ttt'])         
+        session_scores[i+1, 1]      = testReducedData(cfg_dict['hmm_cfg'])         
 
         # click HMM 
         cfg_dict['clickhmm_cfg']['D']    = simulation_utils.simulate_HMMRecalibration(cfg_dict['clickhmm_cfg'], clickhmm)
         cfg_dict['clickhmm_cfg']['beta'] = simulation_utils.gainSweep(cfg_dict['clickhmm_cfg'], possibleGain = base_opts['possibleGain'])
-        session_scores[i+1, 2]    = np.mean(simulateBCIFitts(cfg_dict['clickhmm_cfg'])['ttt'])  
+        session_scores[i+1, 2]    = testReducedData(cfg_dict['clickhmm_cfg'])
         
         # RTI
         cfg_dict['rti_cfg']['D']    = simulation_utils.simulate_RTIRecalibration(cfg_dict['rti_cfg'], rti)
         cfg_dict['rti_cfg']['beta'] = simulation_utils.gainSweep(cfg_dict['rti_cfg'], possibleGain = base_opts['possibleGain'])
-        session_scores[i+1, 3]      = np.mean(simulateBCIFitts(cfg_dict['rti_cfg'])['ttt']) 
+        session_scores[i+1, 3]      = testReducedData(cfg_dict['rti_cfg'])
         
         
     scores_dict = dict()

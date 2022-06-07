@@ -280,8 +280,6 @@ class Stabilizer(object):
         
         return self
     
-    
-
 
     def transform(self, data): 
         '''Transform neural data into latent space of reference day. Inputs are:

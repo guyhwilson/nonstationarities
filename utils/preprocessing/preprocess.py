@@ -78,7 +78,7 @@ class DataStruct(object):
         keep = list()
         for i in range(self.n_trials):
             start, stop = self.trialEpochs[i, :] 
-            if stop - start > 5:         # hard coded hack - toss out weird short trials
+            if stop - start > 5:         # toss out weird short trials
                 keep.append(i)
 
                 targetSize.append(dat[1][start][0])
@@ -112,6 +112,7 @@ class DataStruct(object):
         self.screenAligned = False
         if alignScreens:
             self.alignTaskScreens()
+            self.screenAligned = True
             
 
     def alignTaskScreens(self):
@@ -142,7 +143,9 @@ class DataStruct(object):
                 self.cursorPos_continuous[(start - 1):stop, :] -= screen_realignments[task[0]]
                 self.targetPos_continuous[(start - 1):stop, :] -= screen_realignments[task[0]]
 
-                
-            
         else:
             print('Screens already aligned across tasks. Skipping.')
+            
+            
+            
+            

@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -p normal
+#SBATCH -p normal,owners
 #SBATCH --job-name="stabilizer_paramSweep"
 #SBATCH --begin=now
 #SBATCH --mail-type=FAIL

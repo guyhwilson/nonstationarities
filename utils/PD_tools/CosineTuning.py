@@ -5,6 +5,64 @@ from scipy.ndimage import gaussian_filter1d
 #from sklearn.linear_model import Lin
 
 
+def normalizeDecoderGain(lm, decVec, posErr, thresh):
+    targDist = np.linalg.norm(posErr, axis = 1)
+    targDir  = posErr / targDist[:, np.newaxis]
+
+    farIdx  = np.where(targDist > thresh)[0]
+
+    projVec   = np.sum(np.multiply(decVec[farIdx, :], targDir[farIdx, :]), axis = 1)
+    lm.coef_      /= np.mean(projVec)
+    lm.intercept_ /= np.mean(projVec)
+    
+    return lm
+
+def fitLinearModel(y_true, y_pred, threshold):
+    
+    dists     = np.linalg.norm(y_true, axis = 1)
+    dist_mask = dists > threshold
+    
+    bias = y_pred[dist_mask, :].mean(axis = 0)
+    
+    y = (y_pred - bias)[dist_mask, :].flatten()
+    x = (y_true[dist_mask, :] / dists[dist_mask, None]).flatten() 
+    
+    scale = x.dot(y) / np.sum(x**2) # normal equation reduces to this
+    scale = max(scale, 1e-9) # dont allow negative SNR
+    
+    return scale, bias
+
+
+def estimateNormalizedBias(decoder, x, y, threshold = 300, empirical_correction = True):
+    scale, bias    = fitLinearModel(y, decoder.predict(x), threshold)
+    
+    if empirical_correction:
+        bias -= y.mean(axis = 0)
+        
+    bias_index     = np.linalg.norm(bias) / scale
+    
+    return bias_index
+
+
+def estimateSubspaceDrift(ref_coefs, new_coefs):
+    '''Inputs are:
+        
+        ref_coefs (2D array) - n_vars x nChannels array of encoding/decoding weights
+        new_coefs (2D array) - same as above '''
+    
+    assert ref_coefs.shape == new_coefs.shape, 'inputs must be same size'
+        
+    angles = list()
+    
+    for i in range(ref_coefs.shape[0]):
+        drift_angle = angle_between(ref_coefs[i, :], new_coefs[i, :])
+        angles.append(drift_angle)
+        
+    overall_angle = angle_between(ref_coefs.flatten(), new_coefs.flatten())
+        
+    return angles, overall_angle
+
+
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
     return vector / np.linalg.norm(vector)

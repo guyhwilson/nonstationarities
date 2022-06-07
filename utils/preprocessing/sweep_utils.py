@@ -61,9 +61,19 @@ def makeScoreDict(decoder, test_x, test_y, arg, pair_data):
     score_dict['R2_score']           = r2_score                         # record model R2
     score_dict['pearson_r']          = pearson_r                        # and pearson r (in case of just gain difference)
     score_dict['days_apart']         = pair_data['days_apart']          # days between sessions
-    score_dict['meanRecal_R2_score'] = pair_data['mean_recal_R2']       # mean recalibration R2
-    score_dict['meanRecal_pearson_r']= pair_data['mean_recal_pearsonr'] # mean recalibration pearson r
     
+    # no recalibration whatsoever
+    score_dict['norecal_R2_score']  = pair_data['norecal_R2_score']
+    score_dict['norecal_pearson_r'] = pair_data['norecal_pearson_r']
+    
+    # mean recalibration only 
+    score_dict['meanrecal_R2_score'] = pair_data['meanrecal_R2_score']      
+    score_dict['meanrecal_pearson_r']= pair_data['meanrecal_pearson_r'] 
+    
+    # full supervised recalibration 
+    score_dict['suprecal_R2_score']  = pair_data['suprecal_R2_score']
+    score_dict['suprecal_pearson_r'] = pair_data['suprecal_pearson_r']
+
     return score_dict
 
 
@@ -92,7 +102,10 @@ def getSummaryDataFrame(files, fields = None, prune = None, int_encode_files = F
         formatted = formatJobOutput(f, prune)
         
         if fields is not None and not formatted.empty:
-            formatted = formatted[fields]
+            try:
+                formatted = formatted[fields]
+            except:
+                print('Failure: field not found in ', f)
             
         # if true, encode file field with integer tuple to represent dates 
         # (for cutting down on memory usage by string encoding) 
@@ -227,7 +240,9 @@ def test_Stabilizer(arg):
     return score_dict
 
 
-def test_HMM_Stabilizer(arg):
+
+
+def test_HMM_Stabilizer_old(arg):
     '''Test subspace stabilizer using generated session pairs dataset. Input <arg> is 
        dictionary with key-value pairs:
         '''
@@ -275,6 +290,70 @@ def test_HMM_Stabilizer(arg):
         
     new_decoder = HMM.recalibrate(decoder, [B_train_latent], [train_cursorPos])
     score_dict  = makeScoreDict(new_decoder, B_test_latent, test_targvec, arg, pair_data)
+    
+    return score_dict
+
+
+
+
+
+def test_HMM_Stabilizer(arg):
+    '''Test subspace stabilizer using generated session pairs dataset. Input <arg> is 
+       dictionary with key-value pairs:
+        '''
+    
+    
+    #%%%%%%%%% recalibrate decoder using subspace realignment %%%%%%%%%%%%%%%
+    pair_data = np.load(arg['file'], allow_pickle = True).item()
+    
+    # data for building latent decoder
+    A_train_neural      = pair_data['A_train_neural']
+    A_train_targvec     = pair_data['A_train_targvec']
+    
+    # data for performing realignment
+    B_train_neural      = pair_data['B_train_neural']
+    B_train_targvec     = pair_data['B_train_targvec']
+    
+    # data for testing
+    B_test_neural       = np.vstack(pair_data['B_test_neural'])
+    B_test_targvec      = np.vstack(pair_data['B_test_targvec'])
+    
+    # fit dimensionality reduction method to train latent decoder:
+    stab                 = Stabilizer(arg['model'], arg['n_components'])
+    stab.fit_ref(A_train_neural, conditionAveraged = False)
+    A_train_latent       = stab.ref_model.transform(A_train_neural)
+    latent_decoder       = LinearRegression(fit_intercept = False, normalize = False).fit(A_train_latent, A_train_targvec)
+
+    # now fit to new day, find mapping, and test mapped data:         
+    stab.fit_new(B_train_neural, B = arg['B'], thresh = arg['thresh'], conditionAveraged = False)
+    G                  = stab.getNeuralToLatentMap(stab.new_model)
+    stabilized_decoder = latent_decoder.coef_.dot(G.dot(stab.R).T) # X --> Z' --> Z ---> Y
+    
+        
+    # %%%%%%%% use subspace-recalibrated decoder's predictions (+ cursor pos) on train B block; pass to HMM %%%%%%%
+    
+    # make target states - pull screen bounds from pair_data file, get gridSize from args:
+    X_min, X_max, Y_min, Y_max = pair_data['B_screenBounds']
+    X_loc,Y_loc                = np.meshgrid(np.linspace(X_min, X_max, arg['gridSize']), 
+                                             np.linspace(Y_min, Y_max, arg['gridSize']))
+    targLocs                   = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
+    
+    HMM = HMMRecalibration(arg['stateTrans'], targLocs, arg['pStateStart'], arg['kappa'], 
+                                 adjustKappa = lambda dist : 1 / (1 + np.exp(-1 * (dist - arg['inflection']) *arg['exp'])))
+       
+    decoder           = copy.deepcopy(pair_data['A_decoder'])
+    train_neural      = [pair_data['B_train_neural']]
+    train_cursorPos   = [pair_data['B_train_cursor']]
+    test_neural       = np.vstack(pair_data['B_test_neural'])
+    test_targvec      = np.vstack(pair_data['B_test_targvec'])
+    
+    HMM_decoder = HMM.recalibrate(decoder, train_neural, train_cursorPos, probThreshold = arg['probWeighted'],
+                                  return_viterbi_prob = False)
+    
+    new_decoder            = LinearRegression(fit_intercept = False, normalize = False)
+    new_decoder.coef_      = (stabilized_decoder + HMM_decoder.coef_) / 2 
+    new_decoder.intercept_ = 0
+    score_dict             = makeScoreDict(new_decoder, B_test_neural, test_targvec, arg, pair_data)
     
     return score_dict
 
