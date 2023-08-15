@@ -7,11 +7,11 @@ from datetime import date
 
 import sys
 #sys.path.append('utils/MATLAB/')
-sys.path.append('utils/preprocessing/')
-sys.path.append('utils/recalibration/')
-from preprocess import DataStruct, daysBetween
-from recalibration_utils import get_BlockwiseMeanSubtracted
-import firingrate
+#sys.path.append('utils/preprocessing/')
+#sys.path.append('utils/recalibration/')
+from utils.preprocessing import firingrate
+from utils.preprocessing.preprocess import DataStruct, daysBetween
+from utils.recalibration.recalibration_utils import get_BlockwiseMeanSubtracted
 
 
 def getBlockConstraints(FILE_DIR):

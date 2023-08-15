@@ -104,8 +104,45 @@ def applyWallBound(state_vector, bound = 0.5):
         state_vector[i, 0] = min(np.abs(state_vector[i, 0]), bound) * np.sign(state_vector[i, 0])
     
     return state_vector
+
+
+@jit(nopython=True)
+def meshgrid(x, y):
+    positions = np.empty(shape=(2, len(x) * len(y)), dtype=x.dtype)
+    i = 0
+    for j in range(y.size):
+        for k in range(x.size):
+            positions[0,i] = x[k]  # change to x[k] if indexing xy
+            positions[1,i] = y[j]
+            i = i + 1
+            
+    return positions
     
     
+@jit(nopython = True)
+def getNewTarget(currTarg, mode = 'fitts'):
+    '''Generate new target position'''
+    
+    if mode == 'fitts':
+        newTarg = np.random.rand(2,1) - 0.5 #0.5
+    elif mode == 'radial8':
+        if (currTarg != np.zeros((2, 1))).all():
+            newTarg = np.zeros((2, 1))
+        else:
+            angle   = np.random.choice(np.linspace(0, 2 * np.pi, 9)[:8])
+            newTarg = np.asarray([[np.cos(angle)], [np.sin(angle)]]) * 0.5
+    elif mode == 'grid':
+        n_squares = 8 # 8 x 8 target layout 
+        width     = 1 / n_squares
+
+        gridpoints = np.linspace(-0.5 + width/2, 0.5 - width/2, n_squares)
+        positions  = meshgrid(gridpoints, gridpoints)
+        
+        #newTarg = positions[:, np.random.choice(n_squares**2)]
+        
+    else:
+        raise ValueError('Game mode not recognized')
+    return newTarg
 
 
 
@@ -145,15 +182,17 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
     D            = decode_params['D']
     alpha        = decode_params['alpha'][:, 0]
     beta         = decode_params['beta'][:, 0]
+    gravity      = decode_params['gravity'] 
 
 
     # This is the main simulation loop.
     # These are some task parameters.
-    nHoldSteps = 50
+    nHoldSteps   = 50
     holdCounter  = 0
     trialCounter = 0
-    maxSteps = 1000
-    targRad = 0.075
+    maxSteps     = 1000
+    targRad      = 0.075
+    mode         = 'fitts'
 
     # Define matrices to hold the time series data.
     posTraj    = np.zeros((nStepsForSim, 2))
@@ -169,7 +208,7 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
 
     # Define kalman & cursor state vectors.
     currControl = np.zeros((2, 1))
-    currTarg    = np.random.rand(2,1) - 0.5
+    currTarg    = getNewTarget(np.zeros((2, 1)), mode = mode)
     xK          = np.zeros((A_aug.shape[0], 1))
     xC          = np.zeros((A_aug.shape[0], 1))
 
@@ -188,16 +227,18 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
         else:
             tmp = 0
         currControl = tmp * posErr
+        currControl = currControl - decode_params['gravity']
 
         #simulate neural activity tuned to this control vector
         simAct  = getNeuralTuning(currControl, decode_params)
 
         #decode the neural activity with the decoder matrix D
         rawDecVec = getDecodedControl(simAct, decode_params)
-       
-
+        rawDecVec = rawDecVec + gravity
+      
         #update the cursor state according to the smoothing dynamics
         xC = A_aug.dot(xC) + B_aug.dot(rawDecVec)
+        
         #xC = applyWallBound(xC, bound = 0.5)
         #the rest below is target acquisition & trial time out logic
         newTarg = False
@@ -224,7 +265,7 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
 
             holdCounter  = 0
             trialCounter = 0
-            currTarg     = np.random.rand(2,1) - 0.5
+            currTarg     = getNewTarget(currTarg, mode = mode)
 
         #finally, save this time step of data
         posTraj[t,:]    = xC[:2, 0]
@@ -265,6 +306,11 @@ def simulateBCIFitts(cfg):
     decode_params['D']            = cfg['D']
     decode_params['alpha']        = np.asarray([cfg['alpha']], dtype = np.float64)[:, None]
     decode_params['beta']         = np.asarray([cfg['beta']], dtype = np.float64)[:, None]
+    
+    if 'gravity' not in cfg.keys():
+        decode_params['gravity'] = np.zeros((2, 1))
+    else:
+        decode_params['gravity'] = cfg['gravity']
 
     out   = simulateFitts_Numba(*mats, decode_params, params)
     keys  = ['posTraj', 'posErr_hat', 'velTraj', 'rawDecTraj', 'conTraj', 
@@ -295,170 +341,3 @@ def get_ClickMagnitude(distance, prev):
     
     
     
-    
-def simulateBCIFitts_click(cursorTuning, clickTuning, D, D_click, alpha, beta, nDelaySteps, delT, nStepsForSim, return_PosErr = False, ClickLogic = True, ConsecutiveClicksNeeded = 1):
-    ''' Simulate BCI Fitts task with click decoding. Inputs are: 
-    
-            cursorTuning (2D array)       - channels x 3 array holding baseline FR, X-velocity tuning, and Y-velocity tuning
-            clickTuning (2D array)        - channels x 1 array containing click signal tuning
-            D (2D array)                  - (channnels x 1) x 2 array for cursor decoder
-            D_click (object)              - has method predict_proba() that takes in instantaneous neural signal and outputs click probability
-            alpha (float)                 - cursor decoder (time) smoothing
-            beta (float)                  - cursor decoder gain
-            nDelaySteps (int)             - delay from visual feedback
-            delT (float)                  - amount of time per step (ms)
-            ClickLogic (bool)             - if True, use click decoder to select targets; else use dwell logic
-            ConsecutiveClicksNeeded (int) - wait for this many consecutive clicks before issuing a click
-             ''' 
-    
-    L_kalman, A_aug, B_aug, C_aug = getBCIFittsKF(alpha, beta, nDelaySteps, delT)[:4]    
-
-    # define the fTarg function for the simulated user's control policy, which is basically just a saturating nonlinearity
-    fTarg = np.array([[0.1373,    0.0000],
-                    [10.9670,   150.1874],
-                    [41.0618,   180.8933],
-                    [68.8483,  250.1018],
-                    [104.7274 , 250.4014],
-                    [150.9665 , 260.4379],
-                    [204.6272 , 272.2782],
-                    [263.8003 , 280.9718],
-                    [329.5381 , 309.6743],
-                    [399.8577 , 299.3726]])
-      
-    fTarg[:, 0] /= 400
-    fTarg[:, 1] /= 300
-
-
-    # This is the main simulation loop.
-    # These are some task parameters.
-    nHoldSteps        = 50  # for dwell - number of timesteps to wait before selecting a target
-    holdCounter       = 0   # for dwell - stores the number of timesteps waited on thus far for target selection
-    trialCounter      = 0
-    clickCooldown     = False 
-    consecutiveClicks = 0
-    cooldownCounter   = True
-    maxSteps          = 1000
-    targRad           = 0.075
-
-    # Define matrices to hold the time series data.
-    posTraj      = np.zeros((nStepsForSim, 2))
-    posErr_est   = np.zeros((nStepsForSim, 2))     # internal estimate of position error
-    neuralTraj   = np.zeros((nStepsForSim, cursorTuning.shape[0]))
-    velTraj      = np.zeros((nStepsForSim, 2))
-    rawDecTraj   = np.zeros((nStepsForSim, 2))
-    clickMagTraj = np.zeros((nStepsForSim, 1))   # magnitude of underlying click signal 
-    clickTraj    = np.zeros((nStepsForSim, 1))   # decoded click signal 
-    conTraj      = np.zeros((nStepsForSim, 2))
-    targTraj     = np.zeros((nStepsForSim, 2))
-
-    ttt        = list()
-    trialStart = list()
-
-    # Define kalman & cursor state vectors.
-    currControl = np.zeros((2, 1))
-    currTarg    = np.random.rand(2,1) - 0.5
-    xK          = np.zeros((A_aug.shape[0], 1))
-    xC          = np.zeros((A_aug.shape[0], 1))
-
-    for t in range(nStepsForSim):
-        #first get the user's control vector
-        xK = A_aug.dot(xK) + B_aug.dot(currControl) + L_kalman.dot(C_aug.dot(xC) - C_aug.dot(xK))
-
-        posErr      = currTarg - xK[:2]
-        targDist    = np.linalg.norm(posErr)
-        distWeight  = np.interp(targDist, 
-                                np.concatenate([[0], fTarg[:,0], [100]]), 
-                                np.concatenate([[fTarg[0,1]], fTarg[:,1], [fTarg[-1,1]]])  ) 
-
-        currControl = distWeight * (posErr/targDist)                   # we're ignoring the velocity dampening term
-        clickMag    = get_ClickMagnitude(targDist, clickMagTraj[t-1])  # get click control signal 
-
-
-        #simulate neural activity tuned to this control vector and to the click signal
-        simAct  = cursorTuning[:,1:].dot(currControl) + cursorTuning[:, 0][:, np.newaxis]
-        simAct += np.random.normal(size = simAct.shape) * 0.3
-        
-        simAct         += clickMag * clickTuning
-        
-        
-        #decode the neural activity with the decoder matrix D and click decoder
-        rawDecVec = simAct.T.dot(D[1:,:]) + D[0,:]
-        rawDecVec = rawDecVec.T
-        
-        if ClickLogic == False and D_click is None:
-            rawDecClick = 0
-        else:
-            # small hack: we integrate the click decoder's predictions over a 2-timebin window to reduce noise
-            clickwin    = np.hstack([simAct, neuralTraj[t-1, :][:, np.newaxis]])
-            rawDecClick = np.mean(D_click[0].predict_proba(clickwin.T)[:, 1])
-            rawDecClick = float(rawDecClick > D_click[1])
-            
-            consecutiveClicks += rawDecClick # if click decoded, count stays same; else resets to 0
-            consecutiveClicks += rawDecClick # if click decoded, count goes up by 1; else remains at 0 
-        
-        
-        #update the cursor state according to the smoothing dynamics
-        xC = A_aug.dot(xC) + B_aug.dot(rawDecVec)
-        
-        #the rest below is target acquisition & trial time out logic
-        newTarg = False
-
-        #trial time out
-        trialCounter += 1
-        if trialCounter > maxSteps:
-            newTarg = True
-        
-        #---target acquisition------
-        trueDist = np.linalg.norm(currTarg - xC[:2])
-        
-        # click-based target selection:
-        if ClickLogic:
-            if clickCooldown:
-                cooldownCounter += 1
-                rawDecClick      = 0
-                if cooldownCounter > 10:  # cooldown period for 10 * delT milliseconds (150 ms)
-                    clickCooldown   = False
-                    cooldownCounter = 0
-
-            
-            if trueDist < targRad:
-                if rawDecClick == 1 and clickCooldown == False and consecutiveClicks >= ConsecutiveClicksNeeded:
-                    newTarg       = True
-                    clickCooldown = True
-                    
-        # dwell time based target selection      
-        else:
-            if trueDist < targRad:
-                holdCounter += 1
-            else:
-                holdCounter = 0
-
-            if holdCounter > nHoldSteps:
-                newTarg = True
-
-
-        #new target
-        if newTarg:
-            ttt.append(trialCounter/100)
-            trialStart.append(t)
-
-            holdCounter  = 0
-            trialCounter = 0
-            currTarg     = np.random.rand(2,1) - 0.5
-
-        #finally, save this time step of data
-        posTraj[t,:]      = xC[:2].squeeze()
-        posErr_est[t,:]   = posErr.squeeze()
-        velTraj[t,:]      = xC[2:4].squeeze()
-        rawDecTraj[t,:]   = rawDecVec.squeeze()
-        clickMagTraj[t,:] = clickMag
-        clickTraj[t,:]    = rawDecClick
-        conTraj[t,:]      = currControl.squeeze()
-        targTraj[t,:]     = currTarg.squeeze()
-        neuralTraj[t,:]   = simAct.squeeze()
-        
-    if return_PosErr:
-        return posTraj, posErr_est, velTraj, rawDecTraj, clickMagTraj, clickTraj, conTraj, targTraj, neuralTraj, np.asarray(trialStart), np.asarray(ttt)
-    else:
-        return posTraj, velTraj, rawDecTraj, clickMagTraj, clickTraj, conTraj, targTraj, neuralTraj, np.asarray(trialStart), np.asarray(ttt)
-            

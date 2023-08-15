@@ -4,7 +4,7 @@ import sys
 from plotting_utils import figSize
 
 
-def plotsd(data, color, time_bins = None, toggleSE = False, alpha = 0.2):
+def plotsd(data, color, time_bins = None, toggleSE = False, alpha = 0.2, label = None):
   '''
   Plotting with standard error shading. Inputs are:
   
@@ -31,8 +31,8 @@ def plotsd(data, color, time_bins = None, toggleSE = False, alpha = 0.2):
   if toggleSE:
     sd_signal /= np.sqrt(numreps)
   
-  plt.plot(time_bins, mean_signal, color= color)
-  plt.fill_between(time_bins, mean_signal - sd_signal, mean_signal + sd_signal, color=color, alpha=alpha)
+  plt.plot(time_bins, mean_signal, color= color, label = label)
+  plt.fill_between(time_bins, mean_signal - sd_signal, mean_signal + sd_signal, color=color, alpha=alpha, label = None)
   
   
 def plotCI(data, color, CI = 95, time_bins = None, alpha = 0.2):

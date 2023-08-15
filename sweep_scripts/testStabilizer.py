@@ -32,7 +32,7 @@ baseOpts['thresh']       = 0.01
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-parser = argparse.ArgumentParser(description = 'Code for optimizing HMM across session pairs.')
+parser = argparse.ArgumentParser(description = 'Code for parallelizing stabilizer across session pairs.')
 parser.add_argument('--participant', type = str, help = 'Participant ID (e.g. T5)')
 parser.add_argument('--n_jobs', type = int, help = 'Number of jobs running this script')
 parser.add_argument('--jobID', type = int, help = 'job ID')
@@ -42,8 +42,8 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/test/'
-SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
+DATA_DIR    = f'/oak/stanford/groups/shenoy/ghwilson/nonstationarities/{args.participant}/session_pairs/'
+SAVE_PATH   = os.path.join(args.saveDir, 'scores_ID_' + str(args.jobID) + '.npy')
 files       = glob.glob(DATA_DIR + '*')
 
 sweepOpts         = dict()

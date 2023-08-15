@@ -2,6 +2,16 @@
 
 
 ## Setup 
+
+First download the GitHub repo and install as a pip package:
+
+```
+git clone https://github.com/guyhwilson/nonstationarities.git
+pip install .
+```
+
+
+
 Requires Python 3 and anaconda/miniconda. To setup python virtual environment, use the following command from this level of directory:
 
 `$ conda env create --file environment.yml`
@@ -28,37 +38,6 @@ Then ssh into the compute node that it launches on:
 
 ---------------------------
 
-TODO:
-- move mean subtraction out of models and evaluation functions and into preprocessing
-
-
-
-#### HMM code + repo restructuring update
- 
-List of notebooks:
-- `click_BehaviorT5`
-- `click_HMM_T5`
-- `comparisons_all`
-- `CursorDecoding_LinearRegression` 
-- `DecodingClick_T5`
-- `DEVELOPMENT`
-- `example_Behavior`
-- `example_MeanRecalibration` 
-- `example_RTI_Recalibration`
-- `example_SubspaceRealignment` 
-- `example_T5_vanillaHMM`
-- `optimize_vanillaHMM`
-- `optimize_SubspaceRealignment` 
-- `PDs_AcrossSession`
-- `PDs_FlexibleVonMises`
-- `PDs_WithinSession`
-- `preprocessing_FindBadSessions`
-- `preprocessing_ScreenRealignments`
-- `prob_weighting_HMM`
-- `SNR_T5` 
-- `stability_MeanRecalibration`
-
-
-#### *Regularized linear regression*
-
-Current velocity decoders can be overfit - try using ridge regression and redoing relevant analyses. 
+Session notes:
+- one session has flipped pedestals (medial <--> lateral)
+- 2021 T5 summer sessions have a delay period for some reason...?

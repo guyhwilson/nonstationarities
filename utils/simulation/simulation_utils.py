@@ -1,12 +1,12 @@
 import numpy as np
-from simulation import simulateBCIFitts
 from sklearn.linear_model import LinearRegression
 import copy 
 
 import sys
 sys.path.append('../utils/recalibration/')
-import stabilizer_utils
-import RTI_utils
+from utils.simulation.simulation import simulateBCIFitts
+from utils.recalibration import stabilizer_utils, RTI_utils
+
 
 
 def generateUnits(n_units, SNR = 1):
@@ -152,7 +152,6 @@ def renormalizeDecoder(D_new, cfg):
     
     D_new /= D_ref
        
-    
     return D_new
 
 
@@ -184,7 +183,7 @@ def simulate_ClosedLoopRecalibration(cfg):
 
 def simulate_HMMRecalibration(cfg, hmm):
     
-    calib_block             = simulateBCIFitts(cfg) 
+    calib_block = simulateBCIFitts(cfg) 
     
     if hmm.getClickProb is not None:        
         clickTraj = np.zeros((cfg['nSimSteps']))
@@ -287,7 +286,6 @@ def fit_LatentDecoder(neural, posErr, args):
     D_coef   = h.dot(Q_ref.T)                                         # compose to get neural --> latent --> output 
     D_latent = np.hstack([lr.intercept_[:, np.newaxis], D_coef]).T    # add bias terms
     
-    #decVec   = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_latent)
     D_latent = renormalizeDecoder(D_latent, cfg = dict())
     
     decoder_dict = dict()
@@ -306,9 +304,7 @@ def recalibrate_LatentDecoder(neural, decoder_dict, stab, args, daisy_chain):
     G_new        = stab.getNeuralToLatentMap(stab.new_model)
     D_coefnew    = decoder_dict['h'].dot(G_new.dot(stab.R).T)                # compose dimreduce with latent --> latent 
     D_new        = np.hstack([decoder_dict['lr_intercept'], D_coefnew]).T    # add bias terms
-     
-    decVec_new   = np.hstack([np.ones((neural.shape[0], 1)), neural]).dot(D_new)
-        
+             
     return D_new
     
     
@@ -316,24 +312,52 @@ def simulate_LatentOpenLoopRecalibration(cfg, decoder_dict, stab, args):
     
     neural_OL, posErr_OL = simulateUnitActivity(cfg['neuralTuning'], noise = 0.3, nSteps = nSteps)
     
-    D_latent  = recalibrate_LatentDecoder(neural_OL, decoder_dict, stab, args)
-    #D_latent  = normalizeDecoderGain(D_latent, decVec_OL, posErr_OL, thresh = 0.4)
-    
+    D_latent = recalibrate_LatentDecoder(neural_OL, decoder_dict, stab, args)    
     D_latent = renormalizeDecoder(D_latent, cfg)
 
     return D_latent 
     
     
-def simulate_LatentClosedLoopRecalibration(cfg, decoder_dict, stab, args, daisy_chain = False):
-    '''Supervised recalibration of latent space decoder.'''
+def simulate_LatentClosedLoopRecalibration(cfg, decoder_dict, stab, args, daisy_chain = False, hmm = None):
+    '''Unsupervised recalibration of latent space decoder.'''
     
     CL_block  = simulateBCIFitts(cfg)
-    posErr_CL = CL_block['targTraj'] - CL_block['posTraj']
     neural_CL = CL_block['neuralTraj']
     
-    D_latent  = recalibrate_LatentDecoder(neural_CL, decoder_dict, stab, args, daisy_chain)
-    #D_latent  = normalizeDecoderGain(D_latent, decVec_CL, posErr_CL, thresh = 0.4)
+    if hmm is None:
+        D_latent  = recalibrate_LatentDecoder(neural_CL, decoder_dict, stab, args, daisy_chain)    
+        
+    else:
+        
+        if hmm.getClickProb is not None:        
+            clickTraj                         = np.zeros((cfg['nSimSteps']))
+            clickTraj[CL_block['trialStart']] =  1
+            targStates, pTargState  = hmm.viterbi_search(CL_block['rawDecTraj'], CL_block['posTraj'], clickTraj)
+        else:
+            targStates, pTargState  = hmm.viterbi_search(CL_block['rawDecTraj'], CL_block['posTraj'])
+       
+        inferredPosErr = hmm.targLocs[targStates.astype('int').flatten(),:] - CL_block['posTraj']
+        D_latent = recalibrate_LatentDecoderCombined(neural_CL, inferredPosErr, decoder_dict, stab, args, daisy_chain)
     
-    D_latent = renormalizeDecoder(D_latent, cfg)
-
+    D_latent  = renormalizeDecoder(D_latent, cfg)
     return D_latent
+
+
+def recalibrate_LatentDecoderCombined(neural, inferredPosErr, decoder_dict, stab, args, daisy_chain):
+
+    # first apply subspace realignment:
+    stab.fit_new([neural], B = args['B'], thresh = args['thresh'], daisy_chain = daisy_chain)
+    
+    G_new        = stab.getNeuralToLatentMap(stab.new_model)        
+    D_coefnew    = decoder_dict['h'].dot(G_new.dot(stab.R).T)             # compose dimreduce with latent --> latent
+    D_ss         = np.hstack([decoder_dict['lr_intercept'], D_coefnew]).T # add bias terms
+    
+    # estimate PRI-T solution
+    lr             = LinearRegression(fit_intercept = True).fit(neural, inferredPosErr)
+    D_HMM          = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T   
+    
+    # combine approaches
+    D_new = (D_ss + D_HMM) / 2
+        
+    return D_new
+

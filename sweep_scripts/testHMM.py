@@ -49,8 +49,8 @@ args  = parser.parse_args()
 
 
 # load dataset, add files as a sweep parameter:
-DATA_DIR    = '/oak/stanford/groups/shenoy/ghwilson/nonstationarities/' + args.participant + '/test/'
-SAVE_PATH   = args.saveDir + 'scores_ID_' + str(args.jobID) + '.npy'
+DATA_DIR    = f'/oak/stanford/groups/shenoy/ghwilson/nonstationarities/{args.participant}/session_pairs/'
+SAVE_PATH   = os.path.join(args.saveDir, 'scores_ID_' + str(args.jobID) + '.npy')
 files       = glob.glob(DATA_DIR + '*')
 
 sweepOpts         = dict()

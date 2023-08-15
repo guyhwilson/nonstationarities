@@ -16,9 +16,6 @@ import simulation_utils
 from simulation import simulateBCIFitts
 import sweep_utils
 
-# for a reproducible result
-np.random.seed(1)
-
 parser = argparse.ArgumentParser(description = 'Code for optimizing HMM across session pairs.')
 parser.add_argument('--n_jobs', type = int, help = 'Number of jobs running this script')
 parser.add_argument('--jobID', type = int, help = 'job ID')
@@ -27,9 +24,11 @@ args  = parser.parse_args()
 
 
 ##############################
+# for a reproducible result
+#np.random.seed(1)
 
 # general settings:
-reps       = 100   # how many times to repeat for each nSteps sweep
+reps       = 200   # how many times to repeat for each nSteps sweep
 
 base_opts = dict()
 base_opts['alpha']          = 0.94 # amount of exponential smoothing (0.9 to 0.96 are reasonable)
@@ -41,14 +40,14 @@ base_opts['center_means']   = False
 base_opts['nTrainingSteps'] = 10000
 
 
-base_opts['n_sessions']   = 15     # number of sessions to simulate 
+base_opts['n_sessions']   = 30     # number of sessions to simulate 
 base_opts['days_between'] = 0      # days between session days
 base_opts['shrinkage']    = 0.91   # relative tuning in subspace per new day
 base_opts['n_stable']     = 0
 
 # sweep settings:
 sweep_opts = dict()
-sweep_opts['nSimSteps'] = [2000, 4000, 6000, 8000, 10000]
+sweep_opts['nSimSteps'] = [2000, 3000, 4000, 5000, 6000]
 
 
 # HMM settings:

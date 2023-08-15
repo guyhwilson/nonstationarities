@@ -4,8 +4,8 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 
 import sys
-sys.path.append('../utils/preprocessing/')
-from preprocess import DataStruct, daysBetween
+#sys.path.append('../utils/preprocessing/')
+from utils.preprocessing.preprocess import DataStruct, daysBetween
 
 
 

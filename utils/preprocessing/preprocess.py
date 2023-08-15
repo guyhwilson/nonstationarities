@@ -6,7 +6,7 @@ import os
 import re
 from copy import deepcopy
 from datetime import date
-import firingrate
+from utils.preprocessing import firingrate
 
 
 def daysBetween(date_a, date_b):
@@ -56,6 +56,8 @@ class DataStruct(object):
         self.decVel               = dat[10]
         self.n_trials             = self.trialEpochs.shape[0]
         self.n_channels           = self.TX_continuous.shape[1] 
+        self.displacement_continuous = self.targetPos_continuous - self.cursorPos_continuous
+
          
         # now load in neural data and smooth if requested:
         if causal_filter > 0:
@@ -74,6 +76,7 @@ class DataStruct(object):
         cursorPos, targetPos   = list(), list()
         decClick               = list()
         onTarget               = list()
+        displacement           = list()
         
         keep = list()
         for i in range(self.n_trials):
@@ -91,6 +94,7 @@ class DataStruct(object):
                 TX.append(deepcopy(self.TX_continuous[start:stop, :]))
                 cursorPos.append(deepcopy(self.cursorPos_continuous[start:stop, :]))
                 targetPos.append(deepcopy(self.targetPos_continuous[start:stop, :]))
+                displacement.append(deepcopy(self.targetPos_continuous[start:stop, :] - self.cursorPos_continuous[start:stop, :]))
                 decClick.append(deepcopy(self.decClick_continuous[start:stop]))
                 onTarget.append(deepcopy(self.onTarget_continuous[start:stop]))
 
@@ -99,6 +103,7 @@ class DataStruct(object):
         self.cursorSize   = np.asarray(cursorSize, dtype = 'object')
         self.targetPos    = targetPos
         self.cursorPos    = cursorPos
+        self.displacement = displacement
         self.decClick     = np.asarray(decClick, dtype = 'object')
         self.onTarget     = np.asarray(onTarget, dtype = 'object')
         self.blockNums    = np.asarray(blockNums, dtype = 'object')

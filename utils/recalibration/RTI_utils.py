@@ -28,9 +28,15 @@ class RTI(object):
         features = list()
         targets  = list()
         
-        for i in clicks:
+        for idx, i in enumerate(clicks):
             target = cursor[i, :]
-            start  = max(i - self.look_back, 0)  # look back at previous timepoints 
+            
+            # look back at previous timepoints up to prior click
+            if idx == 0:
+                start = max(i - self.look_back, 0) 
+            if idx > 0:
+                start = max(i - self.look_back, clicks[idx-1])
+                
             stop   = i - self.min_time + 1       # include only up to some window prior to click 
             
             # subselect time range of interest before click

@@ -9,17 +9,17 @@ from mpl_toolkits.mplot3d import proj3d
 
 
 def figSize(x, y):
-  '''Change pyplot figure size. Inputs are:
-  
-  x (float) - height
-  y (float) - width
-  
-  swapped so it feels like doing matrix stuff'''
-  
-  matplotlib.rcParams['figure.figsize'] = [y, x]
-  matplotlib.rcParams['pdf.fonttype'] = 42 
-  matplotlib.rcParams['ps.fonttype'] = 42
-  matplotlib.rcParams['font.family'] = 'Arial'
+    '''Change pyplot figure size. Inputs are:
+
+    x (float) - height
+    y (float) - width
+
+    swapped so it feels like doing matrix stuff'''
+
+    matplotlib.rcParams['figure.figsize'] = [y, x]
+    matplotlib.rcParams['pdf.fonttype'] = 42 
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.rcParams['font.family'] = 'sans-serif'
 
 def setTickLabels(ax, labels, which):
     if which == 'x':
@@ -31,11 +31,17 @@ def setTickLabels(ax, labels, which):
 
 
 def modifyBoxPlotAlpha(ax, alpha):
-  '''Change opacity of box plots.'''
-  for patch in ax.artists:
-    r, g, b, a = patch.get_facecolor()
-    patch.set_facecolor((r, g, b, alpha))
-    
+    '''Change opacity of box plots.'''
+
+    if len(ax.artists) != 0:
+        iterator = ax.artists
+    else:
+        iterator = ax.patches
+
+    for patch in iterator:
+        r, g, b, a = patch.get_facecolor()
+        patch.set_facecolor((r, g, b, alpha))
+
     
 def modifyViolinAlpha(ax, alpa):
     ax.setp(ax.collections, alpha=.3)

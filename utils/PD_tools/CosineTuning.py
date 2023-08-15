@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
 from scipy.ndimage import gaussian_filter1d
+import scipy.stats
 #from sklearn.linear_model import Lin
 
 
@@ -142,33 +143,36 @@ def fit_BinnedAngles(datas, n_AngleBins, time_bin = 10):
   
   return binned_angles, labels
 
-def fitTuningCurve(neural, traj, n_AngleBins, cv = 5):
-  '''Fit tuning curve data for a given unit's activity. Inputs are:
-  
-    neural (1D array) - neural activity (time x 1)
+def fitTuningCurve(neural, traj, n_AngleBins, percentile = 0.95, n_iters = 1000):
+    '''Fit tuning curve data for a given unit's activity. Inputs are:
+
+    neural (2D array) - neural activity (time x channels)
     traj (2D array)   - time x 2 of velocity/cursor signals
     n_AngleBins (int) - number of bins to divide [0, 2pi] into
-    cv (int)          - split dataset into <cv> non-overlapping groups
-                        for estimating mean
-    Returns:
-      
-      FR_estimates (2D array) - n_AngleBins x cv array of mean estimates
-      labels (1D array)       - corresponding angle value for each angle bin
-  '''
-  
-  n_samples     = neural.shape[0]
-  FR_estimates  = np.zeros((n_AngleBins, cv))
-  kf            = KFold(n_splits = cv)
+    n_iters (int)     - number of bootstrap iterations 
 
-  for fold, (_, inds) in enumerate(kf.split(np.arange(n_samples))):
-      neural_cv      = neural[inds]
-      traj_cv        = traj[inds, :]
-      binned, labels = fit_BinnedAngles(traj_cv, n_AngleBins)
-      neural_means   = [np.mean(neural_cv[binned == i]) for i in range(1, n_AngleBins + 1)]
-      
-      FR_estimates[:, fold] = neural_means
-    
-  return FR_estimates, labels
+    Returns:
+
+      FR_estimates (2D array) - n_AngleBins x 3 array of FR mean estimates (mean, low, high)
+      labels (1D array)       - corresponding angle value for each angle bin
+    '''
+
+    n_samples, n_channels  = neural.shape[:]
+    FR_estimates           = np.zeros((n_AngleBins, n_channels, 3))
+    binned, labels         = fit_BinnedAngles(traj, n_AngleBins)
+
+    for i in range(n_AngleBins):       
+        angle_idxs = np.where(binned == i+1)[0]
+        
+        FR_estimates[i, :, 0] = neural[angle_idxs, :].mean(axis = 0)
+                
+        bs = scipy.stats.bootstrap((neural[angle_idxs, :],), np.mean, axis = 0, 
+                                   confidence_level = percentile, n_resamples = n_iters,
+                                   method = 'percentile')
+        FR_estimates[i, :, 1] = bs.confidence_interval.low
+        FR_estimates[i, :, 2] = bs.confidence_interval.high
+
+    return FR_estimates, labels
 
   
 def fitCosineTuning(neural, traj):

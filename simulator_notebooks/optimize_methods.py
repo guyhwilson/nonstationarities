@@ -1,18 +1,18 @@
 import numpy as np
-import sys, glob, copy
+import sys, glob, copy, os
 import argparse
 
-[sys.path.append(f) for f in glob.glob('../utils/*')]
-from plotting_utils import figSize
-from simulation import simulateBCIFitts
-import simulation_utils
+#[sys.path.append(f) for f in glob.glob('../utils/*')]
+from utils.plotting.plotting_utils import figSize
+from utils.simulation.simulation import simulateBCIFitts
+from utils.simulation import simulation_utils
+from utils.preprocessing import sweep_utils
 
+from utils.recalibration import RTI_utils, stabilizer_utils, hmm_utils, hmm
 from stabilizer_utils import Stabilizer
 from hmm import HMMRecalibration
-import hmm_utils
 from RTI_utils import RTI
 
-import stabilizer_utils, sweep_utils 
 from joblib import Parallel, delayed
 import copy
 
@@ -30,14 +30,17 @@ rti_sweep_opts = dict()  # rti sweep settings
 ss_sweep_opts['thresh']       = [0.01, 0.05, 0.1, 0.2, 0.3]
 ss_sweep_opts['n_components'] = np.arange(2, 8)
 ss_sweep_opts['B']            = np.arange(10, 191, 30)
+ss_sweep_opts['chained']      = [False]
 
 hmm_sweep_opts['inflection'] = np.linspace(0, 0.5, 6)
 hmm_sweep_opts['exp']        = np.linspace(1, 40, 6)
 hmm_sweep_opts['kappa']      = [0.5, 1, 2, 3, 4, 6]
+hmm_sweep_opts['chained']    = [False]
 
-rti_sweep_opts['look_back'] = [120, 160, 200, 240, 280, 300]
+rti_sweep_opts['look_back'] = [200, 240, 280, 320, 360, 400]
 rti_sweep_opts['min_dist']  = [0, 0.1, 0.2, 0.3]
-rti_sweep_opts['min_time']  = [10, 20, 30, 40, 50, 60, 80, 100]
+rti_sweep_opts['min_time']  = [10, 20, 30, 40, 50, 60]
+rti_sweep_opts['chained']   = [False]
 
 
 nReps = 30
@@ -81,7 +84,7 @@ def testHMM(base_opts, hmm_opts, n_days, n_reps):
     scores = np.zeros((n_reps))
     
     adjustKappa             = lambda x: 1 / (1 + np.exp(-1 * (x - hmm_opts['inflection']) * hmm_opts['exp']))
-    targLocs                = hmm_utils.generateTargetGrid(gridSize = base_opts['gridSize'])
+    targLocs                = hmm_utils.generateTargetGrid(gridSize = base_opts['gridSize'], is_simulated=True)
     stateTrans, pStateStart = hmm_utils.generateTransitionMatrix(gridSize = base_opts['gridSize'], stayProb = base_opts['stayProb'])
 
     hmm = HMMRecalibration(stateTrans, targLocs, pStateStart, hmm_opts['kappa'], adjustKappa = adjustKappa)
@@ -90,11 +93,19 @@ def testHMM(base_opts, hmm_opts, n_days, n_reps):
         cfg   = simulation_utils.initializeBCI(base_opts)
         
         for j in range(n_days):
-            cfg['neuralTuning'] = simulation_utils.simulateTuningShift(cfg['neuralTuning'], n_stable = base_opts['n_stable'], PD_shrinkage = base_opts['shrinkage'], 
-                                                                          mean_shift = 0, renormalize = simulation_utils.sampleSNR())  
-            cfg['D']    = simulation_utils.simulate_HMMRecalibration(cfg, hmm)
-            cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
-        
+            cfg['neuralTuning'] = simulation_utils.simulateTuningShift(cfg['neuralTuning'], 
+                                                                       n_stable = base_opts['n_stable'], 
+                                                                       PD_shrinkage = base_opts['shrinkage'], 
+                                                                       mean_shift = 0,
+                                                                       renormalize = simulation_utils.sampleSNR())  
+            
+            if hmm_opts['chained'] or j == n_days-1:
+                # if using chaining, we update the decoder on each new day. If we're not chaining then
+                # we'll only run the update on the very last day
+                cfg['D']    = simulation_utils.simulate_HMMRecalibration(cfg, hmm)
+                cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
+                
+
         scores[i]   = np.mean(simulateBCIFitts(cfg)['ttt'])
         
     scores_dict['ttt'] = scores
@@ -111,16 +122,20 @@ def testStabilizer(base_opts, ss_opts, n_days, n_reps):
     for i in range(n_reps):
         cfg, ss_decoder_dict, stabilizer = simulation_utils.initializeBCI({**base_opts, **ss_opts})
         cfg['neuralTuning'][:, 0] = 0
+        
+        scores_dict['reference_cfg'] = copy.deepcopy(cfg)
 
         for j in range(n_days):
             cfg['neuralTuning'] = simulation_utils.simulateTuningShift(cfg['neuralTuning'], n_stable = base_opts['n_stable'], PD_shrinkage = base_opts['shrinkage'], 
                                                                           mean_shift = 0, renormalize = simulation_utils.sampleSNR())  
-            cfg['D']    = simulation_utils.simulate_LatentClosedLoopRecalibration(cfg, ss_decoder_dict, stabilizer, ss_opts, daisy_chain = True)
+            cfg['D']    = simulation_utils.simulate_LatentClosedLoopRecalibration(cfg, ss_decoder_dict, stabilizer, ss_opts, daisy_chain = ss_opts['chained'])
             cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
             
         scores[i]   = np.mean(simulateBCIFitts(cfg)['ttt'])
         
     scores_dict['ttt'] = scores
+    scores_dict['final_cfg']  = copy.deepcopy(cfg)
+    scores_dict['stabilizer'] = stabilizer
 
     return scores_dict
 
@@ -139,8 +154,11 @@ def testRTI(base_opts, rti_opts, n_days, n_reps):
                                   n_stable = base_opts['n_stable'], PD_shrinkage = base_opts['shrinkage'], 
                                   mean_shift = 0, renormalize = simulation_utils.sampleSNR())  
             
-            cfg['D']    = simulation_utils.simulate_RTIRecalibration(cfg, rti)
-            cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
+            if rti_opts['chained'] or j == n_days-1:
+                # if using chaining, we update the decoder on each new day. If we're not chaining then
+                # we'll only run the update on the very last day
+                cfg['D']    = simulation_utils.simulate_RTIRecalibration(cfg, rti)
+                cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
             
         scores[i]   = np.mean(simulateBCIFitts(cfg)['ttt'])
         
@@ -168,15 +186,16 @@ if __name__ == '__main__':
     hmm_args   = sweep_utils.generateArgs(hmm_sweep_opts, {})
     rti_args   = sweep_utils.generateArgs(rti_sweep_opts, {})
     sweep_args = np.array_split(np.concatenate([ss_args, hmm_args, rti_args]), args.n_jobs)[args.jobID]
-    #sweep_args = np.array_split(rti_args, args.n_jobs)[args.jobID]
 
     print('Stabilizer: {} parameters to sweep'.format(len(ss_args)))
     print('HMM: {} parameters to sweep '.format(len(hmm_args)))
     print('RTI: {} parameters to sweep '.format(len(rti_args)))
+    print('Number for this job: ', len(sweep_args))
     
-    sweep_scores = Parallel(n_jobs= -1, verbose = 5)(delayed(testMethod)(base_opts, x, nDays, nReps) for x in sweep_args)
-    np.save(args.saveDir + 'sweep_scores_{}.npy'.format(args.jobID), sweep_scores)
-    print('Finished.')
+    
+    #sweep_scores = Parallel(n_jobs= -1, verbose = 5)(delayed(testMethod)(base_opts, x, nDays, nReps) for x in sweep_args)
+    #np.save(os.path.join(args.saveDir,  'sweep_scores_{}.npy'.format(args.jobID)), sweep_scores)
+    #print('Finished.')
 
 
 
