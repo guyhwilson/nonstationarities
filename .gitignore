@@ -1,3 +1,8 @@
 # Dont track content of these folders: 
 slurm/
 figures/
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# compilation
+*.pyc
