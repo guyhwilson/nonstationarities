@@ -24,23 +24,26 @@ np.random.seed(1)
 
 ##############################
 ss_sweep_opts  = dict()  # stabilizer sweep settings
-hmm_sweep_opts = dict()  # hmm sweep settings
+hmm_sweep_opts = dict()  # PRI-T sweep settings
 rti_sweep_opts = dict()  # rti sweep settings
 
-ss_sweep_opts['thresh']       = [0.01, 0.05, 0.1, 0.2, 0.3]
+ss_sweep_opts['method']       = 'stabilizer'
+ss_sweep_opts['thresh']       = [0.01, 0.03, 0.05, 0.07, 0.1]
 ss_sweep_opts['n_components'] = np.arange(2, 8)
 ss_sweep_opts['B']            = np.arange(10, 191, 30)
-ss_sweep_opts['chained']      = [False]
+ss_sweep_opts['chained']      = [False, True]
 
+hmm_sweep_opts['method']     = 'PRI-T'
 hmm_sweep_opts['inflection'] = np.linspace(0, 0.5, 6)
 hmm_sweep_opts['exp']        = np.linspace(1, 40, 6)
 hmm_sweep_opts['kappa']      = [0.5, 1, 2, 3, 4, 6]
-hmm_sweep_opts['chained']    = [False]
+hmm_sweep_opts['chained']    = [False, True]
 
-rti_sweep_opts['look_back'] = [200, 240, 280, 320, 360, 400]
+hmm_sweep_opts['method']    = 'RTI'
+rti_sweep_opts['look_back'] = [200, 240, 280, 320, 360, 400, 500]
 rti_sweep_opts['min_dist']  = [0, 0.1, 0.2, 0.3]
 rti_sweep_opts['min_time']  = [10, 20, 30, 40, 50, 60]
-rti_sweep_opts['chained']   = [False]
+rti_sweep_opts['chained']   = [False, True]
 
 
 nReps = 30
@@ -49,7 +52,7 @@ nDays = 30
 ##############################
 
 
-base_opts      = dict()  # unchanging parameters
+base_opts  = dict()  # unchanging parameters
 
 base_opts['alpha']          = 0.94 # amount of exponential smoothing (0.9 to 0.96 are reasonable)
 base_opts['delT']           = 0.02 # define the time step (20 ms)
@@ -61,7 +64,10 @@ base_opts['center_means']   = True
 base_opts['nTrainingSteps'] = 10000
 base_opts['shrinkage']      = 0.91
 base_opts['n_stable']       = 0
+base_opts['fixed_SNR']      = False
 
+#base_opts['pause_likelihood'] = 0.003 # set to 0 for standard simulator 
+#base_opts['newtarg_on_pause'] = 1 # set to 0 for standard simulator
 
 base_opts['model_type']    = 'PCA'
 
@@ -76,8 +82,7 @@ parser.add_argument('--jobID', type = int, help = 'job ID')
 parser.add_argument('--saveDir', type = str, default = './', help = 'Folder for saving scores')
 args  = parser.parse_args()
 
-
-
+    
 def testHMM(base_opts, hmm_opts, n_days, n_reps):
     
     scores_dict = copy.deepcopy(hmm_opts)
@@ -106,7 +111,7 @@ def testHMM(base_opts, hmm_opts, n_days, n_reps):
                 cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
                 
 
-        scores[i]   = np.mean(simulateBCIFitts(cfg)['ttt'])
+        scores[i] = simulation_utils.evalOnTestBlock(cfg)
         
     scores_dict['ttt'] = scores
 
@@ -122,20 +127,17 @@ def testStabilizer(base_opts, ss_opts, n_days, n_reps):
     for i in range(n_reps):
         cfg, ss_decoder_dict, stabilizer = simulation_utils.initializeBCI({**base_opts, **ss_opts})
         cfg['neuralTuning'][:, 0] = 0
-        
-        scores_dict['reference_cfg'] = copy.deepcopy(cfg)
 
         for j in range(n_days):
-            cfg['neuralTuning'] = simulation_utils.simulateTuningShift(cfg['neuralTuning'], n_stable = base_opts['n_stable'], PD_shrinkage = base_opts['shrinkage'], 
-                                                                          mean_shift = 0, renormalize = simulation_utils.sampleSNR())  
-            cfg['D']    = simulation_utils.simulate_LatentClosedLoopRecalibration(cfg, ss_decoder_dict, stabilizer, ss_opts, daisy_chain = ss_opts['chained'])
+            cfg['neuralTuning'] = simulation_utils.simulateTuningShift(cfg['neuralTuning'], n_stable = base_opts['n_stable'], 
+                                                                       PD_shrinkage = base_opts['shrinkage'], mean_shift = 0, 
+                                                                       renormalize = simulation_utils.sampleSNR())  
+            cfg['D']    = simulation_utils.simulate_LatentClosedLoopRecalibration(cfg, ss_decoder_dict, stabilizer, ss_opts)
             cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
             
-        scores[i]   = np.mean(simulateBCIFitts(cfg)['ttt'])
+        scores[i] = simulation_utils.evalOnTestBlock(cfg)
         
     scores_dict['ttt'] = scores
-    scores_dict['final_cfg']  = copy.deepcopy(cfg)
-    scores_dict['stabilizer'] = stabilizer
 
     return scores_dict
 
@@ -160,7 +162,7 @@ def testRTI(base_opts, rti_opts, n_days, n_reps):
                 cfg['D']    = simulation_utils.simulate_RTIRecalibration(cfg, rti)
                 cfg['beta'] = simulation_utils.gainSweep(cfg, possibleGain = base_opts['possibleGain'])
             
-        scores[i]   = np.mean(simulateBCIFitts(cfg)['ttt'])
+        scores[i] = simulation_utils.evalOnTestBlock(cfg)
         
     scores_dict['ttt'] = scores
 
@@ -169,12 +171,14 @@ def testRTI(base_opts, rti_opts, n_days, n_reps):
 
 def testMethod(base_opts, method_opts, n_days, n_reps):
     
-    if 'n_components' in method_opts.keys():
+    if method_opts['method'] == 'stabilizer':
         scores_dict = testStabilizer(base_opts, method_opts, n_days, n_reps)
-    elif 'look_back' in method_opts.keys():
+    elif method_opts['method'] == 'RTI':
         scores_dict = testRTI(base_opts, method_opts, n_days, n_reps)
-    else:
+    elif method_opts['method'] == 'PRI-T':
         scores_dict = testHMM(base_opts, method_opts, n_days, n_reps)
+    else:
+        raise ValueError('Method not recognized')
     
     return scores_dict
         
@@ -192,10 +196,9 @@ if __name__ == '__main__':
     print('RTI: {} parameters to sweep '.format(len(rti_args)))
     print('Number for this job: ', len(sweep_args))
     
-    
-    #sweep_scores = Parallel(n_jobs= -1, verbose = 5)(delayed(testMethod)(base_opts, x, nDays, nReps) for x in sweep_args)
-    #np.save(os.path.join(args.saveDir,  'sweep_scores_{}.npy'.format(args.jobID)), sweep_scores)
-    #print('Finished.')
+    sweep_scores = Parallel(n_jobs= -1, verbose = 5)(delayed(testMethod)(base_opts, x, nDays, nReps) for x in sweep_args)
+    np.save(os.path.join(args.saveDir,  'sweep_scores_{}.npy'.format(args.jobID)), sweep_scores)
+    print('Finished.')
 
 
 

@@ -28,11 +28,14 @@ def daysBetween(date_a, date_b):
     return np.abs(days) 
 
 
+
+
+
 class DataStruct(object):
     """
     Generates a simplified R struct from cursor data.
     """
-    def __init__(self, file, alignScreens = False, causal_filter = 0):
+    def __init__(self, file, alignScreens = False, free_use = False, causal_filter = 0):
         
         assert isinstance(file, str), "<file> must be a string"
         assert isinstance(alignScreens, bool), "<alignScreens> must be bool"
@@ -45,16 +48,18 @@ class DataStruct(object):
         self.cursorPos_continuous = dat[6].astype('float')
         self.targetPos_continuous = dat[7].astype('float')
         self.decClick_continuous  = np.concatenate(dat[11])
+        self.decVel_continuous    = dat[10]
         self.onTarget_continuous  = np.concatenate(dat[8])
         self.TX_continuous        = dat[12].astype('float')
         self.TX_thresh            = dat[13]
         self.trialEpochs          = dat[15] - 1  # account for MATLAB's 1-indexing
         self.trialEpochs[:, 1]   += 1            # account for MATLAB's inclusive indexing 
         self.interTrialPeriods    = dat[17][~np.isnan(dat[17]).any(axis = 1), :].astype(int) - 1
+        self.n_trials             = self.trialEpochs.shape[0]
+
+            
         self.sysClock             = dat[4]
         self.nspClocks            = dat[5]
-        self.decVel               = dat[10]
-        self.n_trials             = self.trialEpochs.shape[0]
         self.n_channels           = self.TX_continuous.shape[1] 
         self.displacement_continuous = self.targetPos_continuous - self.cursorPos_continuous
 
@@ -75,6 +80,7 @@ class DataStruct(object):
         targetSize, cursorSize = list(), list()
         cursorPos, targetPos   = list(), list()
         decClick               = list()
+        decVel                 = list()
         onTarget               = list()
         displacement           = list()
         
@@ -96,6 +102,7 @@ class DataStruct(object):
                 targetPos.append(deepcopy(self.targetPos_continuous[start:stop, :]))
                 displacement.append(deepcopy(self.targetPos_continuous[start:stop, :] - self.cursorPos_continuous[start:stop, :]))
                 decClick.append(deepcopy(self.decClick_continuous[start:stop]))
+                decVel.append(deepcopy(self.decVel_continuous[start:stop, :]))
                 onTarget.append(deepcopy(self.onTarget_continuous[start:stop]))
 
         self.TX           = TX
@@ -105,6 +112,7 @@ class DataStruct(object):
         self.cursorPos    = cursorPos
         self.displacement = displacement
         self.decClick     = np.asarray(decClick, dtype = 'object')
+        self.decVel       = np.asarray(decVel, dtype = 'object')
         self.onTarget     = np.asarray(onTarget, dtype = 'object')
         self.blockNums    = np.asarray(blockNums, dtype = 'object')
         self.IsSuccessful = np.asarray(isSuccessful, dtype = 'object')

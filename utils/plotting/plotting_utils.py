@@ -46,13 +46,7 @@ def modifyBoxPlotAlpha(ax, alpha):
 def modifyViolinAlpha(ax, alpa):
     ax.setp(ax.collections, alpha=.3)
     
-    
-def getGroupedColors(subgroups, reference_list):
-  '''For different subgroups of <reference_list>, generate a list of colors for
-     them each. '''
-    
-    
-    
+
     
 class Arrow3D(FancyArrowPatch):
   '''Plot arrows on end of 3D trajectory plots. Inputs are:

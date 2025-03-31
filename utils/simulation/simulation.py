@@ -145,6 +145,48 @@ def getNewTarget(currTarg, mode = 'fitts'):
     return newTarg
 
 
+@jit(nopython = True)
+def getPauseState(pause_likelihood, isPaused, pauseCounter, pauseLength):
+    '''Determine whether or not user is paused, deal with pause logic
+       and return updated pause variables. Inputs are:
+
+           pause_likelihood (float) - [0, 1]; likelihood of a pause at any 
+                                      given timestep
+           isPaused (bool)    - whether or not the user is currently paused
+           pauseCounter (int) - countdown timer for remaining pause length
+           pauseLength (int)  - total pause length
+    '''
+    
+    # these will set poisson distr of pauses to have mean length = 1 sec
+    poisson    = 4
+    multiplier = 25
+    
+    # Ignore pause logic if we're not simulating it:
+    if pause_likelihood == 0.:
+        return isPaused, pauseCounter, pauseLength
+    
+    # else:
+    if not isPaused:
+        isPaused = np.random.rand() < pause_likelihood
+        
+        # if first timestep that we start a new pause, then set its length
+        if isPaused:
+            pauseCounter = (np.random.poisson(poisson) + 1) * multiplier
+            pauseLength  = pauseCounter
+        else:
+            pauseCounter = 0
+            pauseLength  = 0
+            
+    else:
+        pauseCounter -= 1
+        
+        if pauseCounter < 1:
+            isPaused = False
+            pauseLength = 0
+   
+    return isPaused, pauseCounter, pauseLength
+
+
 
 @jit(nopython=True) 
 def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, decode_params, params):
@@ -176,6 +218,7 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
     nDelaySteps  = int(params['nDelaySteps'])
     delT         = params['delT']
     nStepsForSim = int(params['nSimSteps'])
+    pause_likelihood = params['pause_likelihood']
     
     
     neuralTuning = decode_params['neuralTuning']
@@ -187,12 +230,16 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
 
     # This is the main simulation loop.
     # These are some task parameters.
-    nHoldSteps   = 50
+    nHoldSteps   = int(0.5 / delT) # dwell length in step count
+    maxSteps     = int(10 / delT)  # max trial length in step count
     holdCounter  = 0
     trialCounter = 0
-    maxSteps     = 1000
+    timeCounter  = 0
     targRad      = 0.075
     mode         = 'fitts'
+    isPaused     = False # Bool indicating if still paused
+    pauseCounter = 0     # keeps track of remaining pause time in # steps
+    pauseLength  = 0     # keeps track of overall pause length
 
     # Define matrices to hold the time series data.
     posTraj    = np.zeros((nStepsForSim, 2))
@@ -202,6 +249,7 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
     rawDecTraj = np.zeros((nStepsForSim, 2))
     conTraj    = np.zeros((nStepsForSim, 2))
     targTraj   = np.zeros((nStepsForSim, 2))
+    pauseTraj  = np.zeros((nStepsForSim, 1))
 
     ttt        = list()
     trialStart = list()
@@ -213,21 +261,39 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
     xC          = np.zeros((A_aug.shape[0], 1))
 
     for t in range(nStepsForSim):
-        #first get the user's control vector
+        #first get the user's internal belief about cursor state
         xK = A_aug.dot(xK) + B_aug.dot(currControl) + L_kalman.dot(C_aug.dot(xC) - C_aug.dot(xK))
         
         #xK = applyWallBound(xK, bound = 0.5)
         
-        posErr      = currTarg - xK[:2, :]
-        targDist    = np.linalg.norm(posErr)
-        distWeight  = np.interp(targDist, fTarg[:, 0], fTarg[:, 1]) 
+       # get whether or not user is pausing
+        isPaused, pauseCounter, pauseLength = getPauseState(pause_likelihood, isPaused, pauseCounter, pauseLength,)
         
-        if targDist > 1e-20:
-            tmp = (1 / targDist) * distWeight
-        else:
+        # get cursor-to-target vector and weight by policy
+        posErr   = currTarg - xK[:2, :]
+        targDist = np.linalg.norm(posErr)
+        
+        if targDist < 1e-20 or isPaused:
             tmp = 0
+        else:
+            distWeight = np.interp(targDist, fTarg[:, 0], fTarg[:, 1]) 
+            tmp        = (1 / targDist) * distWeight 
+                
         currControl = tmp * posErr
         currControl = currControl - decode_params['gravity']
+        
+        # below is simulating user moving to new positions after dwelling for a bit:
+        if (isPaused and pauseCounter == 1) and params['newtarg_on_pause']:
+            holdCounter  = 0
+            trialCounter = 0
+            timeCounter  = 0
+            # generate a target that's not right next to current cursor pos
+            tmpTarg      = getNewTarget(currTarg, mode = mode)
+            while np.linalg.norm(currTarg - tmpTarg) < 0.3:
+                tmpTarg = getNewTarget(currTarg, mode = mode)
+            currTarg = tmpTarg
+            
+        
 
         #simulate neural activity tuned to this control vector
         simAct  = getNeuralTuning(currControl, decode_params)
@@ -243,8 +309,11 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
         #the rest below is target acquisition & trial time out logic
         newTarg = False
 
-        #trial time out
-        trialCounter = trialCounter + 1
+        #trial time out - dont count pause periods toward them 
+        if not isPaused:
+            trialCounter = trialCounter + 1
+        timeCounter  = timeCounter + 1
+        
         if trialCounter > maxSteps:
             newTarg = True
         
@@ -260,11 +329,12 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
 
         #new target
         if newTarg:
-            ttt.append(trialCounter/100)
+            ttt.append(timeCounter * delT)
             trialStart.append(t)
 
             holdCounter  = 0
             trialCounter = 0
+            timeCounter  = 0
             currTarg     = getNewTarget(currTarg, mode = mode)
 
         #finally, save this time step of data
@@ -275,8 +345,9 @@ def simulateFitts_Numba(L_kalman, A_aug, B_aug, C_aug, d_aug, g_aug, h_aug, deco
         conTraj[t,:]    = currControl[:, 0]
         targTraj[t,:]   = currTarg[:, 0]
         neuralTraj[t,:] = simAct[:, 0]
+        pauseTraj[t,0]  = int(isPaused)
     
-    return posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt
+    return posTraj, posErr_est, velTraj, rawDecTraj, conTraj, targTraj, neuralTraj, trialStart, ttt, pauseTraj
 
 
     
@@ -290,6 +361,8 @@ def simulateBCIFitts(cfg):
             beta (float)            - cursor decoder gain
             nDelaySteps (int)       - delay from visual feedback
             delT (float)            - amount of time per step (ms)
+            pause_likelihood (float) - probability of pausing during a given trial
+            newtarg_on_pause (int)  - toggles new target after user pauses
          '''
     
     mats = getBCIFittsKF(cfg['alpha'], cfg['beta'], cfg['nDelaySteps'], cfg['delT'])
@@ -299,6 +372,9 @@ def simulateBCIFitts(cfg):
     params['delT']        = float(cfg['delT'])
     params['nSimSteps']   = float(cfg['nSimSteps'])
     params['nDelaySteps'] = float(cfg['nDelaySteps'])
+    params['pause_likelihood'] = 0. if 'pause_likelihood' not in cfg.keys() else float(cfg['pause_likelihood']) 
+    params['newtarg_on_pause'] = 0. if 'newtarg_on_pause' not in cfg.keys() else float(cfg['newtarg_on_pause']) 
+    
     
     decode_params = numba.typed.Dict.empty(key_type=types.unicode_type, value_type=types.float64[:, :])
     
@@ -306,15 +382,11 @@ def simulateBCIFitts(cfg):
     decode_params['D']            = cfg['D']
     decode_params['alpha']        = np.asarray([cfg['alpha']], dtype = np.float64)[:, None]
     decode_params['beta']         = np.asarray([cfg['beta']], dtype = np.float64)[:, None]
-    
-    if 'gravity' not in cfg.keys():
-        decode_params['gravity'] = np.zeros((2, 1))
-    else:
-        decode_params['gravity'] = cfg['gravity']
+    decode_params['gravity']      = np.zeros((2,1)) if 'gravity' not in cfg.keys() else cfg['gravity']
 
     out   = simulateFitts_Numba(*mats, decode_params, params)
     keys  = ['posTraj', 'posErr_hat', 'velTraj', 'rawDecTraj', 'conTraj', 
-            'targTraj', 'neuralTraj', 'trialStart', 'ttt']
+            'targTraj', 'neuralTraj', 'trialStart', 'ttt', 'pauseTraj']
     
     results = dict(zip(keys, out))
     

@@ -1,3 +1,4 @@
+# Script for training ADAN models on single sessions -- see Supp_Fig_1.ipynb for plotting
 import numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt

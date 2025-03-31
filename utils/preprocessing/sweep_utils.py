@@ -246,58 +246,6 @@ def test_Stabilizer(arg):
     return score_dict
 
 
-def test_HMM_Stabilizer_old(arg):
-    '''Test subspace stabilizer using generated session pairs dataset. Input <arg> is 
-       dictionary with key-value pairs:
-        '''
-    
-    
-    #%%%%%%%%% recalibrate decoder using subspace realignment %%%%%%%%%%%%%%%
-    pair_data = np.load(arg['file'], allow_pickle = True).item()
-    
-    # data for building latent decoder
-    A_train_neural      = pair_data['A_train_neural']
-    A_train_targvec     = pair_data['A_train_targvec']
-    
-    # data for performing realignment
-    B_train_neural      = pair_data['B_train_neural']
-    B_train_targvec     = pair_data['B_train_targvec']
-    
-    # data for testing
-    B_test_neural       = np.vstack(pair_data['B_test_neural'])
-    B_test_targvec      = np.vstack(pair_data['B_test_targvec'])
-    
-    # fit dimensionality reduction method to train latent decoder:
-    stab                 = Stabilizer(arg['model'], arg['n_components'])
-    stab.fit_ref(A_train_neural, conditionAveraged = False)
-    A_train_latent       = stab.ref_model.transform(A_train_neural)
-    latent_decoder       =  LinearRegression(normalize = False).fit(A_train_latent, A_train_targvec)
-
-    # now fit to new day, find mapping, and test mapped data:         
-    stab.fit_new(B_train_neural, B = arg['B'], thresh = arg['thresh'], conditionAveraged = False)
-    B_train_latent = stab.transform(B_train_neural)
-    B_test_latent  = stab.transform(B_test_neural)
-    
-    # %%%%%%%% use subspace-recalibrated decoder's predictions (+ cursor pos) on train B block; pass to HMM %%%%%%%
-    
-    # make target states - pull screen bounds from pair_data file, get gridSize from args:
-    X_min, X_max, Y_min, Y_max = pair_data['B_screenBounds']
-    X_loc,Y_loc                = np.meshgrid(np.linspace(X_min, X_max, arg['gridSize']), np.linspace(Y_min, Y_max, arg['gridSize']))
-    targLocs                   = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
-    
-    HMM = HMMRecalibration(arg['stateTrans'], targLocs, arg['pStateStart'], arg['kappa'], 
-                                 adjustKappa = lambda dist : 1 / (1 + np.exp(-1 * (dist - arg['inflection']) *arg['exp'])))
-    
-    decoder           = copy.deepcopy(latent_decoder)
-    train_cursorPos   = pair_data['B_train_cursor']
-    test_targvec      = np.vstack(pair_data['B_test_targvec'])
-        
-    new_decoder = HMM.recalibrate(decoder, [B_train_latent], [train_cursorPos])
-    score_dict  = makeScoreDict(new_decoder, B_test_latent, test_targvec, arg, pair_data)
-    
-    return score_dict
-
-
 def test_HMM_Stabilizer(arg):
     '''Test subspace stabilizer using generated session pairs dataset. Input <arg> is 
        dictionary with key-value pairs:
@@ -330,9 +278,7 @@ def test_HMM_Stabilizer(arg):
     G                  = stab.getNeuralToLatentMap(stab.new_model)
     stabilized_decoder = latent_decoder.coef_.dot(G.dot(stab.R).T) # X --> Z' --> Z ---> Y
     
-        
-    # %%%%%%%% use subspace-recalibrated decoder's predictions (+ cursor pos) on train B block; pass to HMM %%%%%%%
-    
+            
     # make target states - pull screen bounds from pair_data file, get gridSize from args:
     X_min, X_max, Y_min, Y_max = pair_data['B_screenBounds']
     X_loc,Y_loc                = np.meshgrid(np.linspace(X_min, X_max, arg['gridSize']), 

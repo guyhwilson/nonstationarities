@@ -30,6 +30,17 @@ def get_DiscreteTargetGrid(struct, gridSize, task = None):
     return targLocs 
 
 
+
+def getMesh(x_bounds, y_bounds, gridSize):
+    '''Generate a mesh over rectangular area and return as an array of points'''
+    
+    X_loc,Y_loc = np.meshgrid(np.linspace(x_bounds[0], x_bounds[1], gridSize), np.linspace(y_bounds[0], y_bounds[1], gridSize))
+    targLocs    = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
+    
+    return targLocs
+    
+
+
 def generateTargetGrid(gridSize, is_simulated = False, struct = None, task = None):
     '''
     Generate target grid for simulator.
@@ -53,8 +64,7 @@ def generateTargetGrid(gridSize, is_simulated = False, struct = None, task = Non
         x_bounds = [targpos_data[:, 0].min() - 20, targpos_data[:, 0].max() + 20]
         y_bounds = [targpos_data[:, 1].min() - 20, targpos_data[:, 1].max() + 20]
     
-    X_loc,Y_loc = np.meshgrid(np.linspace(x_bounds[0], x_bounds[1], gridSize), np.linspace(y_bounds[0], y_bounds[1], gridSize))
-    targLocs    = np.vstack([np.ravel(X_loc), np.ravel(Y_loc[:])]).T
+    targLocs    = getMesh(x_bounds, y_bounds, gridSize)
     
     return targLocs
 

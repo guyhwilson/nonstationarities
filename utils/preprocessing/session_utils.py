@@ -11,7 +11,7 @@ import sys
 #sys.path.append('utils/recalibration/')
 from utils.preprocessing import firingrate
 from utils.preprocessing.preprocess import DataStruct, daysBetween
-from utils.recalibration.recalibration_utils import get_BlockwiseMeanSubtracted
+from utils.recalibration.recalibration_utils import subtractMeans
 
 
 def getBlockConstraints(FILE_DIR):
@@ -258,12 +258,12 @@ def get_StrongTransferPairs(pairs, min_R2, train_size, sigma = None, block_const
             dayA_blocks, dayB_blocks = None, None
             
         Atrain_x, Atest_x, Atrain_y, Atest_y = getTrainTest(dayA, train_size = train_size, task = task, blocks = dayA_blocks, shuffle = False, returnFlattened = True)
-        Atrain_x, Atest_x                    = get_BlockwiseMeanSubtracted(Atrain_x, Atest_x, concatenate = True)
+        Atrain_x, Atest_x                    = subtractMeans(Atrain_x, Atest_x, method = 'blockwise', concatenate = True)
         Atrain_y                             = np.concatenate(Atrain_y)
         Atest_y                              = np.concatenate(Atest_y)
         
         Btrain_x, Btest_x, Btrain_y, Btest_y = getTrainTest(dayB, train_size = train_size, task = task, blocks = dayB_blocks, shuffle = False, returnFlattened = True)
-        Btrain_x, Btest_x                    = get_BlockwiseMeanSubtracted(Btrain_x, Btest_x, concatenate = True)
+        Btrain_x, Btest_x                    = subtractMeans(Btrain_x, Btest_x, method = 'blockwise', concatenate = True)
         Btrain_y                             = np.concatenate(Btrain_y)
         Btest_y                              = np.concatenate(Btest_y)
         

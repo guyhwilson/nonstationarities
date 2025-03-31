@@ -45,7 +45,8 @@ def simulateUnitActivity(tuning, noise, nSteps):
     return calNeural, calVelocity
 
 
-def sampleSNR():
+def sampleSNR(min_SNR = None):
+    '''Draw from GMM mixture model fit to T5's SNR distribution.'''
 
     means = np.array([[2.78165778], [1.6244981 ]])
     covs  = np.array([[[0.07465756]], [[0.11382677]]])
@@ -56,6 +57,8 @@ def sampleSNR():
     y *= 0.3365
     y -= 0.04438
     
+    if min_SNR is not None:
+        y = max(min_SNR, y)
     return y
 
 
@@ -105,6 +108,7 @@ def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0,
     newTuning[:, 1:]              = (newTuning[:, 1:] * PD_shrinkage) + (newPD_component *np.sqrt(1 - PD_shrinkage**2)) 
     
     # rescale subspace norm 
+    newTuning[:, 1:] /= np.linalg.norm(newTuning[:, 1:], axis=0)
     newTuning[:, 1:] *= renormalize 
     
     return newTuning
@@ -114,31 +118,19 @@ def simulateTuningShift(tuning, PD_shrinkage, PD_noisevar = 1, mean_shift = 0,
 def gainSweep(cfg, possibleGain, verbose = False):
     '''Sweep through gain values to use.'''
     
-    sweep_cfg = copy.deepcopy(cfg)
-    meanTTT   = np.zeros((len(possibleGain),))
+    sweep_cfg                     = copy.deepcopy(cfg)
+    sweep_cfg['pause_likelihood'] = 0 # set pauses to zero for gain optimization
+    meanTTT                       = np.zeros((len(possibleGain),))
 
     for g in range(len(possibleGain)):
         sweep_cfg['beta'] = possibleGain[g]
-        results           = simulateBCIFitts(sweep_cfg)
-        meanTTT[g]        = np.mean(results['ttt'])
+        meanTTT[g]        = evalOnTestBlock(sweep_cfg)
         if verbose:
             print(str(g) + ' / ' + str(len(possibleGain)), 'gain = {:.1f}, ttt = {:.1f}'.format(possibleGain[g], meanTTT[g]))
         
     minIdx = np.argmin(meanTTT)
        
     return possibleGain[minIdx]
-
-
-def normalizeDecoderGain(D, decVec, posErr, thresh):
-    targDist = np.linalg.norm(posErr, axis = 1)
-    targDir  = posErr / targDist[:, np.newaxis]
-
-    farIdx  = np.where(targDist > thresh)[0]
-
-    projVec  = np.sum(np.multiply(decVec[farIdx, :], targDir[farIdx, :]), axis = 1)
-    D       /= np.mean(projVec)
-    
-    return D
 
 
 
@@ -153,6 +145,22 @@ def renormalizeDecoder(D_new, cfg):
     D_new /= D_ref
        
     return D_new
+
+
+def evalOnTestBlock(cfg, test_n_timestamps = 20000):
+    '''Evaluate trial times with fixed amount of data. Useful for when 
+    sweeping nSimSteps but want same data for holdout eval. Inputs are:
+    
+        cfg (dict)              - configuration dictionary for simulator
+        test_n_timestamps (int) - length in timesteps for eval block'''
+    
+    cfg_copy              = copy.deepcopy(cfg)
+    cfg_copy['nSimSteps'] = test_n_timestamps
+    cfg_copy['pause_likelihood'] = 0.
+    
+    ttt = np.mean(simulateBCIFitts(cfg_copy)['ttt']) 
+    
+    return ttt
 
 
 
@@ -243,6 +251,7 @@ def initializeBCI(base_opts):
     else:
         SNR = base_opts['SNR']
     
+ 
     initialTuning = generateUnits(n_units = base_opts['nUnits'], SNR = SNR)
     
     cfg = dict()
@@ -251,6 +260,9 @@ def initializeBCI(base_opts):
     cfg['nDelaySteps']  = base_opts['nDelaySteps']   
     cfg['nSimSteps']    = base_opts['nSimSteps']
     cfg['neuralTuning'] = initialTuning
+    
+    if base_opts['center_means']:
+        cfg['neuralTuning'][:, 0] = 0
     
     if 'n_components' in base_opts.keys():
         assert 'model_type' in base_opts.keys() and 'n_components' in base_opts.keys(), "Missing some input parameters." 
@@ -297,9 +309,9 @@ def fit_LatentDecoder(neural, posErr, args):
     return decoder_dict, stab
 
 
-def recalibrate_LatentDecoder(neural, decoder_dict, stab, args, daisy_chain):
+def recalibrate_LatentDecoder(neural, decoder_dict, stab, args):
 
-    stab.fit_new([neural], B = args['B'], thresh = args['thresh'], daisy_chain = daisy_chain)
+    stab.fit_new([neural], B = args['B'], thresh = args['thresh'], daisy_chain = args['chained'])
     
     G_new        = stab.getNeuralToLatentMap(stab.new_model)
     D_coefnew    = decoder_dict['h'].dot(G_new.dot(stab.R).T)                # compose dimreduce with latent --> latent 
@@ -318,46 +330,16 @@ def simulate_LatentOpenLoopRecalibration(cfg, decoder_dict, stab, args):
     return D_latent 
     
     
-def simulate_LatentClosedLoopRecalibration(cfg, decoder_dict, stab, args, daisy_chain = False, hmm = None):
+def simulate_LatentClosedLoopRecalibration(cfg, decoder_dict, stab, args, hmm = None):
     '''Unsupervised recalibration of latent space decoder.'''
     
     CL_block  = simulateBCIFitts(cfg)
     neural_CL = CL_block['neuralTraj']
     
-    if hmm is None:
-        D_latent  = recalibrate_LatentDecoder(neural_CL, decoder_dict, stab, args, daisy_chain)    
-        
-    else:
-        
-        if hmm.getClickProb is not None:        
-            clickTraj                         = np.zeros((cfg['nSimSteps']))
-            clickTraj[CL_block['trialStart']] =  1
-            targStates, pTargState  = hmm.viterbi_search(CL_block['rawDecTraj'], CL_block['posTraj'], clickTraj)
-        else:
-            targStates, pTargState  = hmm.viterbi_search(CL_block['rawDecTraj'], CL_block['posTraj'])
-       
-        inferredPosErr = hmm.targLocs[targStates.astype('int').flatten(),:] - CL_block['posTraj']
-        D_latent = recalibrate_LatentDecoderCombined(neural_CL, inferredPosErr, decoder_dict, stab, args, daisy_chain)
-    
+    D_latent  = recalibrate_LatentDecoder(neural_CL, decoder_dict, stab, args)    
     D_latent  = renormalizeDecoder(D_latent, cfg)
+    
     return D_latent
 
 
-def recalibrate_LatentDecoderCombined(neural, inferredPosErr, decoder_dict, stab, args, daisy_chain):
-
-    # first apply subspace realignment:
-    stab.fit_new([neural], B = args['B'], thresh = args['thresh'], daisy_chain = daisy_chain)
-    
-    G_new        = stab.getNeuralToLatentMap(stab.new_model)        
-    D_coefnew    = decoder_dict['h'].dot(G_new.dot(stab.R).T)             # compose dimreduce with latent --> latent
-    D_ss         = np.hstack([decoder_dict['lr_intercept'], D_coefnew]).T # add bias terms
-    
-    # estimate PRI-T solution
-    lr             = LinearRegression(fit_intercept = True).fit(neural, inferredPosErr)
-    D_HMM          = np.hstack([lr.intercept_[:, np.newaxis], lr.coef_ ]).T   
-    
-    # combine approaches
-    D_new = (D_ss + D_HMM) / 2
-        
-    return D_new
 

@@ -6,32 +6,8 @@ from sklearn.model_selection import train_test_split
 import sys
 #sys.path.append('../utils/preprocessing/')
 from utils.preprocessing.preprocess import DataStruct, daysBetween
+from utils.preprocessing.firingrate import rolling_window
 
-
-
-def get_BlockwiseMeanSubtracted(train_x, test_x, concatenate = True):
-    '''Perform within-block mean subtraction for neural features at train time,
-       and use prior block means at test time. Inputs are:
-       
-           train_x (list of 2D arrays) - entries are time x channels arrays for each block
-                                         (concatenated across trials)
-           test_x  (list of 2D arrays) - same as above.
-           concatenate (bool)          - if True, combine blocks (within splits) before returning
-    
-    NOTE: assumes train_x and test_x are contiguous e.g. block IDs are [0, 1, 2, ], [3, 4]
-    '''
-    assert isinstance(train_x, list), 'train_x must be of type list'
-    assert isinstance(test_x, list), 'test_x must be of type list'
-    
-    subtract = [train_x[-1]] + test_x
-    train_x  = [x - x.mean(axis = 0) for x in train_x]
-    test_x   = [subtract[i] - subtract[i-1].mean(axis = 0) for i in range(1, len(subtract))]
-    
-    if concatenate:
-        train_x = np.concatenate(train_x)
-        test_x  = np.concatenate(test_x)
-        
-    return train_x, test_x
 
 
 def subtractMeans(train_x, test_x, method, concatenate = True):
@@ -53,12 +29,12 @@ def subtractMeans(train_x, test_x, method, concatenate = True):
     test_x  = test_x.copy()
     
     assert isinstance(train_x, list), 'train_x must be of type list'
-    assert isinstance(test_x, list), 'test_x must be of type list'
+    assert isinstance(test_x, list) or test_x is None, 'test_x must be of type list or None'
     
     if method == 'overall':
         overall = np.concatenate(train_x).mean(axis = 0)
         train_x = [x - overall for x in train_x]
-        test_x  = [x - overall for x in test_x]
+        test_x  = [x - overall for x in test_x] 
     
     elif method == 'blockwise':
         subtract = [train_x[-1]] + test_x
@@ -71,13 +47,13 @@ def subtractMeans(train_x, test_x, method, concatenate = True):
         
         for i, x in enumerate(train_x):
             pad_val      = x.mean(axis = 0)
-            running_mean = firingrate.rolling_window(x, window_size = 600, padding = pad_val).mean(axis = 1) 
+            running_mean = rolling_window(x, window_size = 600, padding = pad_val).mean(axis = 1) 
             x_rolling    = x - running_mean
             train_x_new.append(x_rolling)
             
         for i, x in enumerate(test_x):
             pad_val      = subtract[i].mean(axis = 0)
-            running_mean = firingrate.rolling_window(x, window_size = 600, padding = pad_val).mean(axis = 1) 
+            running_mean = rolling_window(x, window_size = 600, padding = pad_val).mean(axis = 1) 
             x_rolling    = x - running_mean
             test_x_new.append(x_rolling)
             
@@ -89,10 +65,9 @@ def subtractMeans(train_x, test_x, method, concatenate = True):
             
     if concatenate:
         train_x = np.concatenate(train_x)
-        test_x  = np.concatenate(test_x)
+        test_x  = np.concatenate(test_x) if test_x != [] else []
         
     return train_x, test_x
-
 
 
 

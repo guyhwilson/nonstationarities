@@ -3,24 +3,25 @@ import scipy, numba
 import scipy.special
 from numba import jit
 import time 
+from joblib import Parallel, delayed
 
 
 class HMMRecalibration(object):
     """
-    HMM recalibration class. Initialize by defining the state transition matrix, observation models, and 
+    PRI-T HMM object. Initialize by defining the state transition matrix, observation models, and 
     state prior probabilities. 
     """
     
     def __init__(self, stateTransitions, targLocs, pStateStart, vmKappa, adjustKappa = None, getClickProb = None):
         '''Inputs are:
 
-            stateTransitions (2D array) - transition probabilities; n_states x n_states
-            targLocs (2D array)         - n_states x 2 array containing corresponding target locations for each state
+            stateTransitions (2D array) - transition probabilities; nStates x nStates
+            targLocs (2D array)         - nStates x 2 array containing corresponding target locations for each state
             pStateStart (vector)        - starting probabilities for each state 
             vmKappa (float)             - precision parameter for Von Mises observation model
-            adjustKappa (method)        - fxn for weighting kappa values; defaults to None
-            getClickProb (method)       - a function (cursor_state) --> P(cursor_state | target) for all tagets in targLocs;
-                                          (default: None, which yields a "vanilla" HMM without click model) '''
+            adjustKappa (method)        - fxn for weighting kappa values based on distance; defaults to None
+            getClickProb (method)       - a function (cursor_state) --> P(cursor_state | target) for all targets in targLocs;
+                                          (default: None, which yields a "vanilla" PRI-T HMM without click model) '''
     
         self.stateTransitions = stateTransitions
         self.targLocs         = targLocs
@@ -36,34 +37,45 @@ class HMMRecalibration(object):
         
         
         
-    def _compute_dists_and_angles(self, rawDecodeVec, cursorPos):
+    def _compute_dists_and_angles(self, cursorVel, cursorPos):
         '''Given cursor states across time, compute expected angle and distance with respect to 
            all possible target states. Inputs are:
 
-                rawDecodeVec (2D array)     - time x 2 array containing decoder outputs at each timepoint
-                cursorPos (2D array)        - time x 2 array of cursor positions  '''
+                cursorVel (2D array)     - time x 2 array containing decoder outputs at each timepoint
+                cursorPos (2D array)     - time x 2 array of cursor positions  '''
         
-        observedAngle    = np.arctan2(rawDecodeVec[:, 1], rawDecodeVec[:, 0])
+        observedAngle    = np.arctan2(cursorVel[:, 1], cursorVel[:, 0])
         tDists           = np.linalg.norm(self.targLocs - cursorPos[:, np.newaxis, :], axis = 2)
         normPosErr       = (self.targLocs[:, np.newaxis] - cursorPos) / tDists.T[:, :, np.newaxis]
+        
+        #normPosErr[np.isnan(normPosErr)] = 0
+        #normPosErr       = (self.targLocs[:, np.newaxis] - cursorPos) / tDists.transpose([1,0,2])
+        
+        #PosErr     = self.targLocs[:, np.newaxis] - cursorPos
+        #normPosErr = np.divide(PosErr, tDists.T[:, :, np.newaxis], out=np.zeros_like(a), where=tDists.T[:, :, np.newaxis]!=0)
+        #normPosErr[tDists.T[:, :, np.newaxis]==0] = 0
+        
         expectedAngle    = np.arctan2(normPosErr[:, :, 1], normPosErr[:, :, 0])
         
         return tDists, expectedAngle, observedAngle
 
             
-    def get_posterior_prob(self, rawDecodeVec, cursorPos, clickState = None):
+    def get_posterior_prob(self, cursorVel, cursorPos, clickState = None):
         '''Given cursor position and velocity, returns P(targ | cursor info) for all possible targets. Inputs are:
            
-                rawDecodeVec (2D array)   - time x 2 array containing decoder outputs at each timepoint
+                cursorVel (2D array)   - time x 2 array containing decoder outputs at each timepoint
                 cursorPos (2D array)      - time x 2 array of cursor positions  
                 clickState (1D array)     - binary indicator of whether or not user clicked'''
         
          # 1. compute distance from the cursor to each target, and expected angle for that target
-        tDists, expectedAngle, observedAngle = self._compute_dists_and_angles(rawDecodeVec, cursorPos)
+        tDists, expectedAngle, observedAngle = self._compute_dists_and_angles(cursorVel, cursorPos)
         vmKappa_adjusted                     = self.vmKappa * self.adjustKappa(tDists)
         
         # 2. compute VM probability densities
         obsProbLog = (vmKappa_adjusted * np.cos(observedAngle - expectedAngle).T) - np.log(2*np.pi* scipy.special.i0(vmKappa_adjusted))
+        
+        # edge case - when directly over a possible target, just set to uniform
+        obsProbLog[tDists==0] = np.log(1 / (2 * np.pi))
         
         # 3. Optionally compute bernoulli click (log) probabilities and add to posterior 
         if clickState is not None:
@@ -77,14 +89,14 @@ class HMMRecalibration(object):
 
         
         
-    def viterbi_search(self, rawDecodeVec, cursorPos, clickSignal = None, verbose = False):
+    def viterbi_search(self, cursorVel, cursorPos, clickSignal = None, verbose = False):
         '''Run viterbi algorithm to find most likely sequence of target states given the cursor position and decoder outputs. Inputs are:
 
-            rawDecodeVec (2D array)     - time x 2 array containing decoder outputs at each timepoint
+            cursorVel (2D array)     - time x 2 array containing decoder outputs at each timepoint
             cursorPos (2D array)        - time x 2 array of cursor positions  '''
         
         numStates    = len(self.stateTransitions)
-        L            = rawDecodeVec.shape[0]
+        L            = cursorVel.shape[0]
         currentState = np.zeros((L, ))
 
         # work in log space to avoid numerical issues
@@ -92,7 +104,7 @@ class HMMRecalibration(object):
         v     = np.log(self.pStateStart)
 
         # Precompute p(obs | latent) for all timesteps and states: 
-        vmProbLog = self.get_posterior_prob(rawDecodeVec, cursorPos, clickSignal)
+        vmProbLog = self.get_posterior_prob(cursorVel, cursorPos, clickSignal)
         
         # loop through the model;  von mises emissions probabilities
         pTR, v = forward_pass(v.flatten(), logTR, vmProbLog)  # most time intensive part - use numba to get ~2x speedup
@@ -109,19 +121,24 @@ class HMMRecalibration(object):
                 print('stats:hmmviterbi:ZeroTransitionProbability', currentState[ count + 1 ])
 
         return currentState, logP
-     
+    
         
-    def decode(self, rawDecodeVec, cursorPos, clickSignal = None, verbose = False):
+    def decode(self, cursorVel, cursorPos, clickSignal = None, verbose = False):
         '''Run forward-backward algorithm to find marginal probabilities of hidden states at each timestep (given observed data). 
         Inputs are:
 
-                rawDecodeVec (2D array)   - time x 2 array containing decoder outputs at each timepoint
-                cursorPos (2D array)      - time x 2 array of cursor positions  
-                clickState (float)        - binary indicator of whether or not user clicked '''
+                cursorVel (2D array)   - time x 2 array containing decoder outputs at each timepoint
+                cursorPos (2D array)   - time x 2 array of cursor positions  
+                clickSignal (1D array) - time x 1 indicator of whether or not user clicked
         
-
+        Returns:
+            
+            pStates (2D array) - time x nStates of occupation probabilities
+            pSeq (float)       - log probability of observed data
+        '''
+        
         numStates = len(self.stateTransitions)
-        L         = rawDecodeVec.shape[0] + 1  # add extra symbols to start to make algorithm cleaner at f0 and b0
+        L         = cursorVel.shape[0] + 1  # add extra symbols to start to make algorithm cleaner at f0 and b0
 
         # introduce scaling factors for stability
         fs      = np.zeros((numStates,L))
@@ -130,7 +147,7 @@ class HMMRecalibration(object):
         s[0]    = 1
 
         # Precompute some values for speedup: 
-        vmProb      = np.exp(self.get_posterior_prob(rawDecodeVec, cursorPos, clickSignal))
+        vmProb      = np.exp(self.get_posterior_prob(cursorVel, cursorPos, clickSignal))
         T_transpose = self.stateTransitions.T
         
         for count in range(1, L):
@@ -146,44 +163,95 @@ class HMMRecalibration(object):
 
         pSeq    = np.sum(np.log(s))
         pStates = fs * bs
-        pStates = pStates[:, 1:] # get rid of the column that we stuck in to deal with the f0 and b0 
+        pStates = pStates[:, 1:].T # get rid of the column that we stuck in to deal with the f0 and b0 
 
         return pStates, pSeq
             
         
- 
-    
-    def recalibrate(self, decoder, neural, cursorPos, clickSignal = None, 
-                    probThreshold = 'probWeighted', return_viterbi_prob = False):
-        '''Code for recalibrating velocity decoder on session data using HMM-inferred target locations. Inputs are:
+    def predict(self, cursorPos, cursorVel, clickSignal = None, parallel = False):
+        '''Run PRI-T prediction on retrospective data and return Viterbi sequence and 
+           occupation probabilities. Inputs are:
+           
+               cursorPos (list of 2D arrays)   - entries are time x 2 of cursor positions
+               cursorVel (list of 2D arrays)   - entries are time x 2 of cursor velocities 
+               clickSignal (list of 1D arrays) - entries are sequences of click states, or None (default)
+               
+          Returns:
+              
+               viterbi_seq (2D array)      - time x 1 of target states (viterbi sequence)
+               occupation_probs (2D array) - time x nStates of occupation probabilities 
+        '''
+        
+        if clickSignal is None:
+            clickSignal = [None] * len(cursorPos)
+        
+        if parallel:
+            chunk_inferences = Parallel(n_jobs=-1, verbose = 0)(delayed(self._predict_individual)(*arg) for arg in zip(cursorPos, cursorVel, clickSignal))
 
-            decoder (Sklearn-like object) - decoder to use
-            neural (list)                 - entries are time x n_channels arrays of neural activity 
-            cursorPos (list)              - entries are time x 2 arrays of cursor positions
-            probThreshold (float or str) - threshold for subselecting high certainty regions (only where best guess > probThreshold); can also use mode "probWeighted" to weight by square of HMM's most likely state probability. Defaults to no weighting'''
+        else:
+            chunk_inferences = list()
+            for (block_pos, block_vel, block_click) in zip(cursorPos, cursorVel, clickSignal):
+                targs, pTargs = self._predict_individual(block_pos, block_vel, block_click)
+                chunk_inferences.append([targs, pTargs])
+
+        viterbi_seq      = np.concatenate([x[0] for x in chunk_inferences], axis = 0)
+        occupation_probs = np.concatenate([x[1] for x in chunk_inferences], axis = 0)
+                
+        return viterbi_seq, occupation_probs
+        
+        
+    def _predict_individual(self, cursorPos, cursorVel, clickSignal):
+        '''Helper function called by predict() on individual timestretches. Inputs are:
+        
+            cursorPos (2D array) - time x 2 of cursor positions
+            cursorVel (2D array) - time x 2 of cursor velocities 
+            clickSignal (1D array or None) - sequence of click states 
+            
+           Returns:
+               
+               targs (2D array)  - time x 1 of target states (viterbi sequence)
+               pTargs (2D array) - time x nStates of occupation probabilities '''
+             
+        targs, vp    = self.viterbi_search(cursorVel, cursorPos, clickSignal)
+        pTargs, _    = self.decode(cursorVel, cursorPos, clickSignal)
+        
+        return targs, pTargs
+        
+        
+
+    def recalibrate(self, decoder, neural, cursorPos, cursorVel = None, clickSignal = None, 
+                    probThreshold = 'probWeighted', parallel = False):
+        '''Retrain sklearn-style velocity decoder with inferred targets. Inputs are:
+
+            decoder (sklearn object)      - decoder to use
+            neural (list of 2D arrays)    - entries are time x n_channels arrays of neural activity 
+            cursorPos (list of 2D arrays) - entries are time x 2 arrays of cursor positions
+            cursorVel (list of 2D arrays, or None)   - entries are time x 2 arrays of cursor velocities
+            clickSignal (list of 1D arrays, or None) - entries are sequences of click states
+            
+            probThreshold (float or str)  - threshold for subselecting high certainty regions (only where best
+                                           guess > probThreshold); can also use mode "probWeighted" to weight
+                                           by square of HMM's most likely state probability. Default: WLS weighting
+            parallel (Bool)               - toggle processing data in parallel  
+            
+            Returns:
+                
+                decoder (sklearn object) - recalibrated decoder '''
 
         assert isinstance(probThreshold, float) or probThreshold == 'probWeighted', "Invalid probThreshold value. Check input."
-
-        targStates, pTargState = list(), list()
-        viterbi_probs          = list()
+        
+        if cursorVel is None:
+            cursorVel = [decoder.predict(block_neural) for block_neural in neural]
 
         neural_flattened       = np.concatenate(neural)
         cursorPos_flattened    = np.concatenate(cursorPos)
+        
+        # get concatenated Viterbi sequence across timestretches as well as occupation probs
+        targStates, pTargState = self.predict(cursorPos, cursorVel, clickSignal, parallel = parallel)
 
-        for i, block_neural in enumerate(neural):
-            rawDecTraj   = decoder.predict(block_neural)
-            targs, vp    = self.viterbi_search(rawDecTraj, cursorPos[i], clickSignal)
-            pTargs, _    = self.decode(rawDecTraj, cursorPos[i], clickSignal)
-            
-            targStates.append(targs)
-            pTargState.append(pTargs)
-            viterbi_probs.append(vp)
-
-        targStates      = np.concatenate(targStates)
-        pTargState      = np.concatenate(pTargState)
         maxProb         = np.max(pTargState, axis = 0)              
-        inferredTargLoc = self.targLocs[targStates.astype('int').flatten(), :]    # predicted target locations at each timepoint
-        inferredPosErr  = inferredTargLoc - cursorPos_flattened                   # generate inferred cursorErr signals
+        inferredTargLoc = self.targLocs[targStates.astype('int').flatten(), :]  # predicted target locations at each timepoint
+        inferredPosErr  = inferredTargLoc - cursorPos_flattened  # inferred point-at-target signals
             
         # use high certainty time periods for recalibration:
         if isinstance(probThreshold, float):
@@ -201,11 +269,8 @@ class HMMRecalibration(object):
         else:
             raise ValueError('<probThreshold> argument not recognized.')
             
-           
-        if return_viterbi_prob:
-            return decoder, viterbi_probs
-        else:
-            return decoder
+
+        return decoder
     
     
 
@@ -246,5 +311,3 @@ def np_apply_along_axis(func1d, axis, arr):
         for i in range(len(result)):
             result[i] = func1d(arr[i, :])
     return result
-
-    
