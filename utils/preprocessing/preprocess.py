@@ -8,6 +8,8 @@ from copy import deepcopy
 from datetime import date
 from utils.preprocessing import firingrate
 
+DATA_DIR = "/oak/stanford/groups/henderj/ghwilson/nonstationarities"
+FIG_DIR = "/home/users/ghwilson/projects/nonstationarities/figures/"
 
 def daysBetween(date_a, date_b):
     '''Number of days between two sessions. Input format is:
