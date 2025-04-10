@@ -14,16 +14,16 @@ pip install .
 
 Requires Python 3 and anaconda/miniconda. To setup python virtual environment, use the following command from this level of directory:
 
-`$ conda env create --file environment.yml`
-
-`$ conda activate HMMrecal`
-
+```
+conda env create --file environment.yml
+conda activate HMMrecal`
+```
 
 ## Data formatting
 
 There are a few different data sources used in this repo. 
 
-*T5 closed-loop datasets*
+### T5 closed-loop datasets
 
 These are saved as .mat files and originally intended for MATLAB ingestion. Python is a tad more messy, please consider using the DataStruct class to prefetch and organize the raw data. To obtain minimally processed results, first access the data via:
 
@@ -49,7 +49,7 @@ dat[18] (list[str]) - list of block names
 dat[19] (list[int]) - trial success indicator (1 = success, 0 = failed)
 
 
-*T5 recalibration experiment datasets*
+### T5 recalibration experiment datasets
 
 These data are stored as individual blocks for each closed-loop experiment in:
 
@@ -79,7 +79,7 @@ raw_vel (2D float) - the raw velocity signal as decoded, prior to exponential sm
 task_clock (byte str) - clock time on system used for task handling in seconds
 
 
-*Recalibration technique sweep results*
+### Recalibration technique sweep results
 
 Results are stored for each technique in:
 
@@ -102,8 +102,7 @@ suprecal_pearson_r (float) - pearson correlation on new day with supervised retr
 
 Additionally, the hyperparameters used for the recalibration on these specific data are listed in additional entries, "batch_size" (int), or "n_components" (int). In all cases these are singletons of type float, int, or string.  
 
-*Simulator sweeps*
-
+### Simulator sweeps
 
 Results for various sweeps are stored as .npy files at:
 
