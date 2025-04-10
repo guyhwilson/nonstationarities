@@ -8,7 +8,7 @@ from copy import deepcopy
 from datetime import date
 from utils.preprocessing import firingrate
 
-DATA_DIR = "/oak/stanford/groups/henderj/ghwilson/nonstationarities"
+DATA_DIR = "/oak/stanford/groups/henderj/ghwilson/PRITpaper2025/"
 FIG_DIR = "/home/users/ghwilson/projects/nonstationarities/figures/"
 
 def daysBetween(date_a, date_b):

@@ -1,5 +1,5 @@
 import numpy as np
-import glob, scipy
+import glob, scipy, os
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from datetime import date
@@ -110,7 +110,7 @@ def getBlockConstraints(FILE_DIR):
     block_constraints = dict()
 
     for key, value in noheadstill_dict.items():
-        new_key = FILE_DIR + 'historical/' + key + '.mat'
+        new_key = os.path.join(FILE_DIR,'historical',f'{key}.mat')
         block_constraints[new_key] = value
 
     # new
@@ -137,7 +137,7 @@ def getBlockConstraints(FILE_DIR):
     noheadstill_dict_new['t5.2021.06.30'] = [5, 7]
 
     for key, value in noheadstill_dict_new.items():
-        new_key = FILE_DIR + 'new/' + key + '.mat'
+        new_key = os.path.join(FILE_DIR,'new',f'{key}.mat')
         block_constraints[new_key] = value
     
     return block_constraints
