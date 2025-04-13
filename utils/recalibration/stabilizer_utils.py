@@ -102,7 +102,7 @@ def fit_ConditionAveragedModel(model_type, model_params, datas, conditions):
     model = eval(model_type)(**model_params)
     model.fit(concat_data)
 
-    return model, model.score(concat_data)
+    return model
 
 
 
@@ -126,46 +126,8 @@ def fit_TrialConcatenatedModel(model_type, model_params, data, sigma = None):
     # generate model:
     model = eval(model_type)(**model_params)
     model.fit(input_data)
-
-    return model, model.score(input_data)
-
-  
-
-def latentSweep(model_type, data, sweep_dims, sigma = None, model_params = dict()):
-    '''
-    Do a hyperparameter sweep to identify best latent dimensionality, based 
-    upon performance on holdout data. Inputs are:
-
-    model_type (str)          - can be 'FactorAnalysis' or 'PCA'
-    datas (list)              - entries are channels x time arrays 
-    sweep_dims (list of ints) - dimensionalities to test
-    sigma (float)             - SD of gaussian kernel for data smoothing; default no smoothing
-    model_params (dictionary) - shared parameters for all models generated in sweep
-
-    Returns:
-
-    sweep_results (np array)  - list containing with entries containing scores for each 
-                                value in sweep_dims
-
-    TODO:
-    random_state (int)        - if provided, sets the random state for reproducibility or paired comparisons
-    fit PCA using max(sweep_dims) then just subselect eigenvector #s according to sweep_dims
-    '''
-  
-    sweep_len                     = len(sweep_dims)
-    sweep_results                 = np.zeros((sweep_len,)) 
-    models                        = list()
-
-    for i, state_dim in enumerate(sweep_dims):
-        model_params['n_components'] = state_dim
-
-        model, score     = fit_TrialConcatenatedModel(model_type, model_params, data, sigma = sigma)
-        sweep_results[i] = score
-        models.append(model)
-
-    return sweep_results, models
-
-
+        
+    return model
 
 
 def identifyGoodChannels(lambda_1, lambda_2, B, thresh):
@@ -229,10 +191,10 @@ class Stabilizer(object):
         if conditionAveraged:
             trlens                         = [dat.shape[0] for dat in datas]
             assert len(np.unique(trlens)) == 1, "Trials have different lengths - unable to trial-average."
-            model, ll  = fit_ConditionAveragedModel(self.model_type, {'n_components' : self.n_components}, datas, conditions)
+            model = fit_ConditionAveragedModel(self.model_type, {'n_components' : self.n_components}, datas, conditions)
 
         else:
-            model, ll = fit_TrialConcatenatedModel(self.model_type, {'n_components' : self.n_components}, datas)
+            model = fit_TrialConcatenatedModel(self.model_type, {'n_components' : self.n_components}, datas)
 
         self.ref_model  = model
         self.ref_coefs  = model.components_.T
@@ -255,10 +217,10 @@ class Stabilizer(object):
         if conditionAveraged:
             trlens                         = [dat.shape[0] for dat in datas]
             assert len(np.unique(trlens)) == 1, "Trials have different lengths - unable to trial-average."
-            model, ll = fit_ConditionAveragedModel(self.model_type, {'n_components' : self.n_components}, datas, conditions)
+            model = fit_ConditionAveragedModel(self.model_type, {'n_components' : self.n_components}, datas, conditions)
 
         else:
-            model, ll = fit_TrialConcatenatedModel(self.model_type, {'n_components' : self.n_components}, datas)
+            model = fit_TrialConcatenatedModel(self.model_type, {'n_components' : self.n_components}, datas)
 
         if daisy_chain and self.new_model is not None:
             self.ref_model = copy.copy(self.new_model)
