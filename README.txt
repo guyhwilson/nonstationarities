@@ -1,3 +1,11 @@
+## Environment setup:
+
+conda env create -f environment.yml
+conda activate nonstationarities
+
+Or with pip:
+pip install -r requirements.txt
+
 ## Data formatting
 
 There are a few different data sources used in this repo. 
