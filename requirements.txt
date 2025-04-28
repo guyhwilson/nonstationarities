@@ -15,7 +15,6 @@ autopage==0.5.1
 Babel==2.12.1
 backcall==0.2.0
 beautifulsoup4==4.11.2
-bleach==4.0.0
 boto3==1.26.94
 botocore==1.29.94
 brainflow==5.6.3
@@ -88,18 +87,6 @@ json5==0.9.14
 jsonpointer==2.3
 jsonref==1.1.0
 jsonschema==3.2.0
-jupyter==1.0.0
-jupyter-client==6.1.12
-jupyter-console==6.4.0
-jupyter-core==4.7.1
-jupyter-events==0.6.3
-jupyter-lsp==2.2.0
-jupyter_server==2.6.0
-jupyter_server_terminals==0.4.4
-jupyterlab==4.0.2
-jupyterlab-pygments==0.1.2
-jupyterlab-widgets==1.0.0
-jupyterlab_server==2.23.0
 keopscore==2.1
 keras==2.10.0
 kiwisolver==1.4.4
@@ -137,7 +124,6 @@ omegaconf==2.3.0
 opt-einsum==3.3.0
 optuna==2.10.1
 overrides==7.3.1
-packaging==21.0
 pandas==1.5.2
 pandocfilters==1.4.3
 parso==0.8.2
@@ -211,10 +197,6 @@ stevedore==5.0.0
 strict-rfc3339==0.7
 submitit==1.4.5
 swagger-spec-validator==3.0.3
-tensorboard==2.10.1
-tensorboard-data-server==0.7.0
-tensorflow-estimator==2.10.0
-tensorflow-gpu==2.10.0
 termcolor==2.2.0
 terminado==0.11.0
 testpath==0.5.0
@@ -241,7 +223,6 @@ wcwidth==0.2.5
 webcolors==1.12
 webencodings==0.5.1
 websocket-client==1.5.1
-Werkzeug==2.3.4
 widgetsnbextension==3.5.1
 wrapt==1.14.1
 zipp==3.15.0
