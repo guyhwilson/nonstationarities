@@ -12,7 +12,7 @@ pip install -e .
 
 Notebooks that reproduce the main figures are as follows in the nonstationarities repository (https://github.com/guyhwilson/nonstationarities):  
 
-Figure 1 - Nonstationarity characterization (notebooks/Figure1_NeuralDriftCharacteristics.ipynb)
+Figure 1 - Nonstationarity characterization (notebooks/Figure1_NeuralDriftCharacteristics.ipynb)  
 Figure 2 - Stabilizer & HMM visualization (notebooks/Fig2_ExampleApproaches.ipynb)  
 Figure 3 - Offline methods comparison on session pairs (notebooks/Fig_3_and_Supp_Figs_3_4.ipynb)  
 Figure 4 - Comparison of recalibration strategies in simulation (simulator_notebooks/Fig_4a_4b.ipynb, simulator_notebooks/Fig_4c.ipynb, simulator_notebooks/Fig_4d.ipynb, simulator_notebooks/Fig_4e.ipynb)  
