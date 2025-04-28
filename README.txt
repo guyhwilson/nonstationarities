@@ -1,9 +1,5 @@
 ## Environment setup:
 
-conda env create -f environment.yml
-conda activate nonstationarities
-
-Or with pip:
 pip install -r requirements.txt
 
 ## Data formatting
