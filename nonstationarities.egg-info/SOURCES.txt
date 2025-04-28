@@ -1,7 +1,9 @@
 README.md
+README.txt
 setup.py
 nonstationarities.egg-info/PKG-INFO
 nonstationarities.egg-info/SOURCES.txt
 nonstationarities.egg-info/dependency_links.txt
 nonstationarities.egg-info/requires.txt
 nonstationarities.egg-info/top_level.txt
+utils/__init__.py
